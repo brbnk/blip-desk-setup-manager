@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../buildMultiTargeting/Blip.Dealer.Desk.Manager.props" />
+</Project>

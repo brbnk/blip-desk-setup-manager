@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "O81QsZqPCxEvJiHb+VONKQTT6g3ZZXFBA4KJ0W3GgxNjFpY9JSgQsjUjVhB+ooOFgKG/ws9LpH6wuEjQxI6x2g==",
+  "success": true,
+  "projectFilePath": "/home/brnaka/projects/v2/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/Blip.Dealer.Desk.Manager.Models.csproj",
+  "expectedPackageFiles": [
+    "/home/brnaka/.nuget/packages/newtonsoft.json/13.0.3/newtonsoft.json.13.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

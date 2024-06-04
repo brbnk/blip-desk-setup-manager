@@ -1,0 +1,6 @@
+@Blip.Dealer.Desk.Manager_HostAddress = http://localhost:5269
+
+GET {{Blip.Dealer.Desk.Manager_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
