@@ -8,6 +8,6 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = Blip.Dealer.Desk.Manager.Models
-build_property.ProjectDir = /home/brnaka/projects/v2/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/
+build_property.ProjectDir = /home/brnaka/projects/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 

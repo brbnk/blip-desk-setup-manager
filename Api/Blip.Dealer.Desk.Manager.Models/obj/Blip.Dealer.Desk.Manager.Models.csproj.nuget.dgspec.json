@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/brnaka/projects/v2/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/Blip.Dealer.Desk.Manager.Models.csproj": {}
+    "/home/brnaka/projects/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/Blip.Dealer.Desk.Manager.Models.csproj": {}
   },
   "projects": {
-    "/home/brnaka/projects/v2/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/Blip.Dealer.Desk.Manager.Models.csproj": {
+    "/home/brnaka/projects/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/Blip.Dealer.Desk.Manager.Models.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/brnaka/projects/v2/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/Blip.Dealer.Desk.Manager.Models.csproj",
+        "projectUniqueName": "/home/brnaka/projects/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/Blip.Dealer.Desk.Manager.Models.csproj",
         "projectName": "Blip.Dealer.Desk.Manager.Models",
-        "projectPath": "/home/brnaka/projects/v2/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/Blip.Dealer.Desk.Manager.Models.csproj",
+        "projectPath": "/home/brnaka/projects/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/Blip.Dealer.Desk.Manager.Models.csproj",
         "packagesPath": "/home/brnaka/.nuget/packages/",
-        "outputPath": "/home/brnaka/projects/v2/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/obj/",
+        "outputPath": "/home/brnaka/projects/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/brnaka/.nuget/NuGet/NuGet.Config"

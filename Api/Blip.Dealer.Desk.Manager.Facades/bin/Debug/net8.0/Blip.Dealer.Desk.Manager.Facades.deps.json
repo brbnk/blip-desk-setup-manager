@@ -9,7 +9,8 @@
       "Blip.Dealer.Desk.Manager.Facades/1.0.0": {
         "dependencies": {
           "Blip.Dealer.Desk.Manager.Models": "1.0.0",
-          "Blip.Dealer.Desk.Manager.Services": "1.0.0"
+          "Blip.Dealer.Desk.Manager.Services": "1.0.0",
+          "RestEase": "1.6.4"
         },
         "runtime": {
           "Blip.Dealer.Desk.Manager.Facades.dll": {}
@@ -98,6 +99,17 @@
           }
         }
       },
+      "RestEase/1.6.4": {
+        "dependencies": {
+          "Newtonsoft.Json": "13.0.3"
+        },
+        "runtime": {
+          "lib/net5.0/RestEase.dll": {
+            "assemblyVersion": "1.6.4.0",
+            "fileVersion": "1.6.4.0"
+          }
+        }
+      },
       "System.CodeDom/7.0.0": {
         "runtime": {
           "lib/net7.0/System.CodeDom.dll": {
@@ -137,7 +149,8 @@
         "dependencies": {
           "Blip.Dealer.Desk.Manager.Models": "1.0.0",
           "Google.Apis.Sheets.v4": "1.68.0.3421",
-          "Microsoft.Extensions.Options": "8.0.2"
+          "Microsoft.Extensions.Options": "8.0.2",
+          "RestEase": "1.6.4"
         },
         "runtime": {
           "Blip.Dealer.Desk.Manager.Services.dll": {}
@@ -206,6 +219,13 @@
       "sha512": "sha512-HrC5BXdl00IP9zeV+0Z848QWPAoCr9P3bDEZguI+gkLcBKAOxix/tLEAAHC+UvDNPv4a2d18lOReHMOagPa+zQ==",
       "path": "newtonsoft.json/13.0.3",
       "hashPath": "newtonsoft.json.13.0.3.nupkg.sha512"
+    },
+    "RestEase/1.6.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-nB8+vzkQLBgZyAm3fNcFYr0GV8TLhvnz8LpERR6K51Vv/wZ0kopU4nFEKTilt3uBn/PYYksthUVnj7GZlTo+pQ==",
+      "path": "restease/1.6.4",
+      "hashPath": "restease.1.6.4.nupkg.sha512"
     },
     "System.CodeDom/7.0.0": {
       "type": "package",

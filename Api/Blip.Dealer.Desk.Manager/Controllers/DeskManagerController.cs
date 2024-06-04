@@ -9,9 +9,12 @@ namespace Blip.Dealer.Desk.Manager.Controllers;
 public class DeskManagerController(IDeskManagerFacade deskManagerFacade) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> PublishDealerDeskSetupAsync([FromBody] PublishDealerSetupRequest request)
+    public async Task<IActionResult> PublishDealerSetupAsync([FromHeader] string token, 
+                                                             [FromBody] PublishDealerSetupRequest request)
     {
-        var response = await deskManagerFacade.ReadGoogleSheetAsync(request);
+        request.SetBearerToken(token);
+
+        var response = await deskManagerFacade.PublishDealerSetupAsync(request);
 
         return Ok(response);
     }

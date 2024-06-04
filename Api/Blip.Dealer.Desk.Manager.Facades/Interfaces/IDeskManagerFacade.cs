@@ -5,5 +5,5 @@ namespace Blip.Dealer.Desk.Manager.Facades.Interfaces;
 
 public interface IDeskManagerFacade
 {
-    public Task<IEnumerable<DealerSetupSheet>> ReadGoogleSheetAsync(PublishDealerSetupRequest request);
+    public Task<IEnumerable<DealerSetupSheet>> PublishDealerSetupAsync(PublishDealerSetupRequest request);
 }

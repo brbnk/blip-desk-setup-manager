@@ -10,6 +10,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDependecyInjection();
+builder.Services.AddRestEaseClients();
 
 builder.Services.Configure<GoogleSheetsSettings>(builder.Configuration.GetSection(nameof(GoogleSheetsSettings)));
 

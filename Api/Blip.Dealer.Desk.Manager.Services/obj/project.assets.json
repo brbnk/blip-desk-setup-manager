@@ -134,6 +134,22 @@
           }
         }
       },
+      "RestEase/1.6.4": {
+        "type": "package",
+        "dependencies": {
+          "Newtonsoft.Json": "13.0.1"
+        },
+        "compile": {
+          "lib/net5.0/RestEase.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net5.0/RestEase.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "System.CodeDom/7.0.0": {
         "type": "package",
         "compile": {
@@ -418,6 +434,29 @@
         "packageIcon.png"
       ]
     },
+    "RestEase/1.6.4": {
+      "sha512": "nB8+vzkQLBgZyAm3fNcFYr0GV8TLhvnz8LpERR6K51Vv/wZ0kopU4nFEKTilt3uBn/PYYksthUVnj7GZlTo+pQ==",
+      "type": "package",
+      "path": "restease/1.6.4",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "icon.png",
+        "lib/net452/RestEase.dll",
+        "lib/net452/RestEase.xml",
+        "lib/net5.0/RestEase.dll",
+        "lib/net5.0/RestEase.xml",
+        "lib/netstandard1.1/RestEase.dll",
+        "lib/netstandard1.1/RestEase.xml",
+        "lib/netstandard2.0/RestEase.dll",
+        "lib/netstandard2.0/RestEase.xml",
+        "lib/netstandard2.1/RestEase.dll",
+        "lib/netstandard2.1/RestEase.xml",
+        "restease.1.6.4.nupkg.sha512",
+        "restease.nuspec"
+      ]
+    },
     "System.CodeDom/7.0.0": {
       "sha512": "GLltyqEsE5/3IE+zYRP5sNa1l44qKl9v+bfdMcwg+M9qnQf47wK3H0SUR/T+3N4JEQXF3vV4CSuuo0rsg+nq2A==",
       "type": "package",
@@ -483,7 +522,8 @@
     "net8.0": [
       "Blip.Dealer.Desk.Manager.Models >= 1.0.0",
       "Google.Apis.Sheets.v4 >= 1.68.0.3421",
-      "Microsoft.Extensions.Options >= 8.0.2"
+      "Microsoft.Extensions.Options >= 8.0.2",
+      "RestEase >= 1.6.4"
     ]
   },
   "packageFolders": {
@@ -492,11 +532,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/brnaka/projects/v2/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Services/Blip.Dealer.Desk.Manager.Services.csproj",
+      "projectUniqueName": "/home/brnaka/projects/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Services/Blip.Dealer.Desk.Manager.Services.csproj",
       "projectName": "Blip.Dealer.Desk.Manager.Services",
-      "projectPath": "/home/brnaka/projects/v2/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Services/Blip.Dealer.Desk.Manager.Services.csproj",
+      "projectPath": "/home/brnaka/projects/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Services/Blip.Dealer.Desk.Manager.Services.csproj",
       "packagesPath": "/home/brnaka/.nuget/packages/",
-      "outputPath": "/home/brnaka/projects/v2/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Services/obj/",
+      "outputPath": "/home/brnaka/projects/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Services/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/brnaka/.nuget/NuGet/NuGet.Config"
@@ -511,8 +551,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/home/brnaka/projects/v2/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/Blip.Dealer.Desk.Manager.Models.csproj": {
-              "projectPath": "/home/brnaka/projects/v2/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/Blip.Dealer.Desk.Manager.Models.csproj"
+            "/home/brnaka/projects/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/Blip.Dealer.Desk.Manager.Models.csproj": {
+              "projectPath": "/home/brnaka/projects/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Models/Blip.Dealer.Desk.Manager.Models.csproj"
             }
           }
         }
@@ -539,6 +579,10 @@
           "Microsoft.Extensions.Options": {
             "target": "Package",
             "version": "[8.0.2, )"
+          },
+          "RestEase": {
+            "target": "Package",
+            "version": "[1.6.4, )"
           }
         },
         "imports": [
