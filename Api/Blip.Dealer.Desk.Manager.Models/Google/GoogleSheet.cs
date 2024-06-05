@@ -2,7 +2,7 @@ namespace Blip.Dealer.Desk.Manager.Models.Google;
 
 public abstract record GoogleSheet
 {
-  private const string CSV_DATA_SEPARATOR = "|";
+  private const string CSV_DATA_SEPARATOR = ",";
 
   public override string ToString()
   {

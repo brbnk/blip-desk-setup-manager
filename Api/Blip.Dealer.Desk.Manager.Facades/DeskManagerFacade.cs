@@ -1,73 +1,194 @@
 using Blip.Dealer.Desk.Manager.Facades.Interfaces;
+using Blip.Dealer.Desk.Manager.Models;
 using Blip.Dealer.Desk.Manager.Models.Blip;
+using Blip.Dealer.Desk.Manager.Models.BotFactory;
 using Blip.Dealer.Desk.Manager.Models.Enums;
 using Blip.Dealer.Desk.Manager.Models.Google;
 using Blip.Dealer.Desk.Manager.Models.Request;
 using Blip.Dealer.Desk.Manager.Services;
 using Blip.Dealer.Desk.Manager.Services.Interfaces;
+using Serilog;
+using Queue = Blip.Dealer.Desk.Manager.Models.Blip.Queue;
 
 namespace Blip.Dealer.Desk.Manager.Facades;
 
 public sealed class DeskManagerFacade(IGoogleSheetsService googleSheetsService,
-                                      IBotFactoryService botFactoryService) : IDeskManagerFacade
+                                      IBotFactoryService botFactoryService,
+                                      ILogger logger) : IDeskManagerFacade
 {
-    public async Task<IEnumerable<DealerSetupSheet>> PublishDealerSetupAsync(PublishDealerSetupRequest request)
+    private readonly IList<string> _groups = [];
+    private IEnumerable<Application> _applications = [];
+    private string _tenant = string.Empty;
+    private ReportSheet _reportSheet;
+    private readonly IList<ReportSheet> _report = [];
+
+    public async Task<IList<ReportSheet>> PublishDealerSetupAsync(PublishDealerSetupRequest request)
     {
-        var dealers = await googleSheetsService.SetSpreadSheetId(request.SpreadSheetId)
-                                               .ReadAsync<DealerSetupSheet>(request.SheetName, request.Range);
+        logger.Information("Starting...");
 
-        var groups = dealers.Where(d => !string.IsNullOrWhiteSpace(d.Code) && request.Brand.Equals(d.Brand))
-                            .GroupBy(d => d.Group);
+        botFactoryService.SetToken(request.GetBearerToken());
 
-        var token = request.GetBearerToken();
+        _tenant = request.Tenant;
+        _applications = await botFactoryService.GetAllApplicationsAsync(request.Tenant);
+
+        if (_applications is null)
+        {
+            logger.Error("It was not possible to find application");
+            throw new Exception("Error to get all applications");
+        }
+        
+        var groups = await ReadAndGroupDealersAsync(request.SpreadSheetId, request.SheetName, request.Range, request.Brand);
+
+        var tasks = new List<Func<Task>>();
 
         foreach (var group in groups)
         {
-            var chatbot = SetupChatbot(request.Brand, group.Key);
+            _reportSheet = new();
 
-            await HandleChatbotCreation(token, chatbot.Id);
+            var dealerGroup = group.Key;
+
+            _reportSheet.SetGroup(dealerGroup);
+
+            var chatbot = SetupChatbot(request.Brand, dealerGroup, request.ImageUrl);
+
+            tasks.Add(() => HandleChatbotCreationAsync(chatbot, group));
         }
 
-        return dealers;
+        foreach (var task in tasks)
+        {
+            await task();
+        }
+
+        return _report;
     }
 
-    private static Chatbot SetupChatbot(string brand, string dealerGroup)
+    private async Task<IEnumerable<IGrouping<string, DealerSetupSheet>>> ReadAndGroupDealersAsync(string spreadSheetId, string sheetName, string range, string brand)
+    {
+        try
+        {
+            var dealers = await googleSheetsService.SetSpreadSheetId(spreadSheetId)
+                                                   .ReadAsync<DealerSetupSheet>(sheetName, range);
+
+            if (!dealers.Any())
+            {
+                logger.Warning("Sheet is empty");
+                throw new Exception("Sheet is empty");
+            }
+
+            var groups = dealers.Where(d => !string.IsNullOrWhiteSpace(d.Code) && brand.Equals(d.Brand))
+                                .GroupBy(d => d.Group);
+
+            return groups;
+        }
+        catch(Exception ex)
+        {
+            logger.Error("Unable to read Dealers Setup Sheet: {ErrorMessage}", ex.Message);
+            throw;
+        }
+    }
+
+    private Chatbot SetupChatbot(string brand, string dealerGroup, string imageUrl)
     {
         var name =  $"{brand.Trim().ToUpper()} - {dealerGroup}";
         
-        return new Chatbot(name);
+        return new Chatbot(name, _tenant, imageUrl);
     }
 
-    private async Task HandleChatbotCreation(string token, string shortName)
+    private async Task HandleChatbotCreationAsync(Chatbot chatbot, IGrouping<string, DealerSetupSheet?> dealers)
     {
-        var state = await botFactoryService.CheckChatbotStateAsync(token, shortName);
+        var application = _applications.FirstOrDefault(a => a.ShortName.Contains(chatbot.ShortName));
 
-        if (state.Equals(ChatbotState.UNKNOWN))
+        var nameWithSuffix = chatbot.NameWithSuffix;
+
+        var state = _groups.Contains(nameWithSuffix) || application is not null ? 
+            ChatbotState.EXISTS : ChatbotState.NEW;
+
+        var shortName = application is not null ? application.ShortName : nameWithSuffix;
+
+        _reportSheet.SetBotId(shortName);
+
+        if (state.Equals(ChatbotState.NEW)) 
         {
-            // Log error to get Chatbot data
+            var createRequest = new CreateChatbotRequest(chatbot.Tenant, nameWithSuffix, chatbot.FullName, chatbot.ImageUrl);
+
+            var created = await botFactoryService.CreateChatbotAsync(createRequest);
+
+            if (!created) 
+                return;
+
+            _groups.Add(shortName);
+            _reportSheet.SetChatbotStepStatus(success: true);
+
+            // Publish flow
         }
         else
         {
-            if (state.Equals(ChatbotState.NEW)) 
+            logger.Warning("Group chatbot already exists {FullName}", chatbot.FullName);
+        }
+        
+        await HandleQueuesCreation(shortName, dealers);
+    }
+
+    private async Task HandleQueuesCreation(string chatbotShortName, IGrouping<string, DealerSetupSheet?> dealers)
+    {
+        var queues = await botFactoryService.GetAllQueuesAsync(chatbotShortName);
+
+        if (queues is null)
+            return;
+
+        var request = new CreateQueuesRequest();
+        var rulesRequest = new CreateRulesRequest();
+
+        foreach (var dealer in dealers)
+        {
+            _reportSheet.SetDealer(dealer?.FantasyName);
+
+            var newQueue = new Queue(dealer?.FantasyName);
+
+            var queueExists = queues.Any(q => 
             {
-                // Create Chatbot Request
-            }
-            else
+                var queue = new Queue(q.Name);
+                return queue.NormalizedName.Equals(newQueue.NormalizedName) || request.Queues.Any(q => q.Equals(newQueue.Name));
+            });
+
+            if (queueExists) 
             {
-                // Log Chatbot already exists
+                _reportSheet.SetQueuesStepStatus(success: true);
+                logger.Warning("Queue already exists: {QueueName}", dealer?.FantasyName);
+                continue;
             }
 
-            await HandleQueuesCreation();
+            request.Queues.Add(newQueue.Name);
+
+            var rule = new Rule(newQueue.Name, dealer?.Code);
+
+            rulesRequest.Rules.Add(rule);
+        }
+
+        if (!request.Queues.Any()) 
+        {
+            logger.Warning("Empty list after remove existing queues: {ChabotShortName}", chatbotShortName);
+            return;
+        }
+
+        var success = await botFactoryService.CreateQueuesAsync(chatbotShortName, request);
+
+        if (success)
+        {
+            await HandleRulesCreation(chatbotShortName, rulesRequest);
         }
     }
 
-    private async Task HandleQueuesCreation()
+    private async Task HandleRulesCreation(string chatbotShortName, CreateRulesRequest request)
     {
-        await HandleRulesCreation();
-    }
+        var success = await botFactoryService.CreateRulesAsync(chatbotShortName, request);
 
-    private async Task HandleRulesCreation()
-    {
+        if (success) 
+        {
+            _reportSheet.SetRulesStepStatus(success: true);
+            logger.Information("Setup was configured with success! {ChabotShortName}", chatbotShortName);
+        }
 
+        _report.Add(_reportSheet);
     }
 }

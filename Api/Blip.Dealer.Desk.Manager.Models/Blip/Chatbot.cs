@@ -1,37 +1,18 @@
-using System.Text.RegularExpressions;
-
 namespace Blip.Dealer.Desk.Manager.Models.Blip;
 
-public sealed partial class Chatbot(string name) 
+public sealed partial class Chatbot(string name, string tenant, string imageUrl) : BlipEntity
 {
-    private const int MaxLength = 30;
+    public override int MaxLength => 30;
     
-    public string Id => RemoveWhiteSpacesRegex().Replace(Name, "").ToLower();
+    public string ImageUrl { get; set; } = imageUrl;
+
+    public string Tenant { get; set; } = tenant;
+
+    public string ShortName => RemoveWhiteSpacesRegex().Replace(FullName, "").ToLower();
     
-    public string Name => Normalize(name);
+    public string FullName => Normalize(name);
 
-    private static string Normalize(string name)
-    {
-        var trimed = name.Trim();
+    public string NameWithSuffix => $"{ShortName}{Suffix}";
 
-        var withNoSpecialChars = RemoveSpecialCharsRegex().Replace(trimed, "");
-
-        var withSingleWhiteSpaces = RemoveMultipleWhiteSpacesRegex().Replace(withNoSpecialChars, " ");
-
-        if (withNoSpecialChars.Length > MaxLength) 
-        {
-            return withSingleWhiteSpaces[..MaxLength];
-        }
-
-        return withSingleWhiteSpaces;
-    }
-
-    [GeneratedRegex(@"\s{2,}")]
-    private static partial Regex RemoveMultipleWhiteSpacesRegex();
-
-    [GeneratedRegex(@"[^0-9a-zA-Z\s]+")]
-    private static partial Regex RemoveSpecialCharsRegex();
-
-    [GeneratedRegex(@"\s+")]
-    private static partial Regex RemoveWhiteSpacesRegex();
+    public static string Suffix => Guid.NewGuid().ToString()[..5];
 }

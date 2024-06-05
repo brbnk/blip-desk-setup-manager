@@ -134,6 +134,35 @@
           }
         }
       },
+      "Polly/8.4.0": {
+        "type": "package",
+        "dependencies": {
+          "Polly.Core": "8.4.0"
+        },
+        "compile": {
+          "lib/net6.0/Polly.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Polly.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
+      "Polly.Core/8.4.0": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Polly.Core.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Polly.Core.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
       "RestEase/1.6.4": {
         "type": "package",
         "dependencies": {
@@ -146,6 +175,19 @@
         },
         "runtime": {
           "lib/net5.0/RestEase.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Serilog/4.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Serilog.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Serilog.dll": {
             "related": ".xml"
           }
         }
@@ -434,6 +476,59 @@
         "packageIcon.png"
       ]
     },
+    "Polly/8.4.0": {
+      "sha512": "z2EeUutuy49jBQyZ5s2FUuTCGx3GCzJ0cJ2HbjWwks94TsC6bKTtAHKBkMZOa/DyYRl5yIX7MshvMTWl1J6RNg==",
+      "type": "package",
+      "path": "polly/8.4.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net462/Polly.dll",
+        "lib/net462/Polly.pdb",
+        "lib/net462/Polly.xml",
+        "lib/net472/Polly.dll",
+        "lib/net472/Polly.pdb",
+        "lib/net472/Polly.xml",
+        "lib/net6.0/Polly.dll",
+        "lib/net6.0/Polly.pdb",
+        "lib/net6.0/Polly.xml",
+        "lib/netstandard2.0/Polly.dll",
+        "lib/netstandard2.0/Polly.pdb",
+        "lib/netstandard2.0/Polly.xml",
+        "package-icon.png",
+        "package-readme.md",
+        "polly.8.4.0.nupkg.sha512",
+        "polly.nuspec"
+      ]
+    },
+    "Polly.Core/8.4.0": {
+      "sha512": "3AZxuP//pxOeBo9tQs7/tz4Z5TTbu4BYfjpaXZD0JYKJo98ngN9TMUz1nybh4k0ykWkMBpGZALV/AmVIE3ew7A==",
+      "type": "package",
+      "path": "polly.core/8.4.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net462/Polly.Core.dll",
+        "lib/net462/Polly.Core.pdb",
+        "lib/net462/Polly.Core.xml",
+        "lib/net472/Polly.Core.dll",
+        "lib/net472/Polly.Core.pdb",
+        "lib/net472/Polly.Core.xml",
+        "lib/net6.0/Polly.Core.dll",
+        "lib/net6.0/Polly.Core.pdb",
+        "lib/net6.0/Polly.Core.xml",
+        "lib/net8.0/Polly.Core.dll",
+        "lib/net8.0/Polly.Core.pdb",
+        "lib/net8.0/Polly.Core.xml",
+        "lib/netstandard2.0/Polly.Core.dll",
+        "lib/netstandard2.0/Polly.Core.pdb",
+        "lib/netstandard2.0/Polly.Core.xml",
+        "package-icon.png",
+        "package-readme.md",
+        "polly.core.8.4.0.nupkg.sha512",
+        "polly.core.nuspec"
+      ]
+    },
     "RestEase/1.6.4": {
       "sha512": "nB8+vzkQLBgZyAm3fNcFYr0GV8TLhvnz8LpERR6K51Vv/wZ0kopU4nFEKTilt3uBn/PYYksthUVnj7GZlTo+pQ==",
       "type": "package",
@@ -455,6 +550,29 @@
         "lib/netstandard2.1/RestEase.xml",
         "restease.1.6.4.nupkg.sha512",
         "restease.nuspec"
+      ]
+    },
+    "Serilog/4.0.0": {
+      "sha512": "2jDkUrSh5EofOp7Lx5Zgy0EB+7hXjjxE2ktTb1WVQmU00lDACR2TdROGKU0K1pDTBSJBN1PqgYpgOZF8mL7NJw==",
+      "type": "package",
+      "path": "serilog/4.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "icon.png",
+        "lib/net462/Serilog.dll",
+        "lib/net462/Serilog.xml",
+        "lib/net471/Serilog.dll",
+        "lib/net471/Serilog.xml",
+        "lib/net6.0/Serilog.dll",
+        "lib/net6.0/Serilog.xml",
+        "lib/net8.0/Serilog.dll",
+        "lib/net8.0/Serilog.xml",
+        "lib/netstandard2.0/Serilog.dll",
+        "lib/netstandard2.0/Serilog.xml",
+        "serilog.4.0.0.nupkg.sha512",
+        "serilog.nuspec"
       ]
     },
     "System.CodeDom/7.0.0": {
@@ -523,7 +641,9 @@
       "Blip.Dealer.Desk.Manager.Models >= 1.0.0",
       "Google.Apis.Sheets.v4 >= 1.68.0.3421",
       "Microsoft.Extensions.Options >= 8.0.2",
-      "RestEase >= 1.6.4"
+      "Polly >= 8.4.0",
+      "RestEase >= 1.6.4",
+      "Serilog >= 4.0.0"
     ]
   },
   "packageFolders": {
@@ -580,9 +700,17 @@
             "target": "Package",
             "version": "[8.0.2, )"
           },
+          "Polly": {
+            "target": "Package",
+            "version": "[8.4.0, )"
+          },
           "RestEase": {
             "target": "Package",
             "version": "[1.6.4, )"
+          },
+          "Serilog": {
+            "target": "Package",
+            "version": "[4.0.0, )"
           }
         },
         "imports": [

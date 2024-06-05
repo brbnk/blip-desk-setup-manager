@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Hp3LrMotCWGSpf2He+SOpjm9SDTWDL9u6YLJjFYfM+WKN+3Z/gtA8RGTKsCFN8JM/2oj5VmxJRBSSr2u2vl8Kg==",
+  "dgSpecHash": "DG8Od7SuL5qsRr1IUNQX2xqZraj58IKuBq4uwwMtEKNlEoYRg5LAEORsyhuGqp6Gyao+qw3UwHkg0nxyvbW8hA==",
   "success": true,
   "projectFilePath": "/home/brnaka/projects/Blip.Dealer.Desk.Manager/Api/Blip.Dealer.Desk.Manager.Services/Blip.Dealer.Desk.Manager.Services.csproj",
   "expectedPackageFiles": [
@@ -12,7 +12,10 @@
     "/home/brnaka/.nuget/packages/microsoft.extensions.options/8.0.2/microsoft.extensions.options.8.0.2.nupkg.sha512",
     "/home/brnaka/.nuget/packages/microsoft.extensions.primitives/8.0.0/microsoft.extensions.primitives.8.0.0.nupkg.sha512",
     "/home/brnaka/.nuget/packages/newtonsoft.json/13.0.3/newtonsoft.json.13.0.3.nupkg.sha512",
+    "/home/brnaka/.nuget/packages/polly/8.4.0/polly.8.4.0.nupkg.sha512",
+    "/home/brnaka/.nuget/packages/polly.core/8.4.0/polly.core.8.4.0.nupkg.sha512",
     "/home/brnaka/.nuget/packages/restease/1.6.4/restease.1.6.4.nupkg.sha512",
+    "/home/brnaka/.nuget/packages/serilog/4.0.0/serilog.4.0.0.nupkg.sha512",
     "/home/brnaka/.nuget/packages/system.codedom/7.0.0/system.codedom.7.0.0.nupkg.sha512",
     "/home/brnaka/.nuget/packages/system.management/7.0.2/system.management.7.0.2.nupkg.sha512"
   ],
