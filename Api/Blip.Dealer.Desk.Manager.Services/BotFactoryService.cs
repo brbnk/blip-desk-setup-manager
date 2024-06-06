@@ -13,6 +13,12 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
 {
     private string _token = string.Empty;
 
+    private readonly IEnumerable<TimeSpan> _intervals = [
+        TimeSpan.FromSeconds(10), 
+        TimeSpan.FromSeconds(30), 
+        TimeSpan.FromSeconds(60)
+    ];
+
     private AsyncRetryPolicy CreateWaitAndRetryPolicy(IEnumerable<TimeSpan> sleepsBeetweenRetries,
                                                       Func<ApiException, bool> condition,
                                                       string logMessage)
@@ -31,7 +37,7 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
     {
         try
         {
-            var retryPolicy = CreateWaitAndRetryPolicy([TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30) ], 
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals, 
                                                        ex => !ex.StatusCode.Equals(HttpStatusCode.Forbidden), 
                                                        $"Create chatbot for {request.FullName}");
 
@@ -59,7 +65,7 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
     {
         try
         {
-            var retryPolicy = CreateWaitAndRetryPolicy([TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(60) ], 
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals, 
                                                        ex => !ex.StatusCode.Equals(HttpStatusCode.Created), 
                                                        $"Creating queues for {chatbotShortName}");
 
@@ -80,7 +86,7 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
     {
         try
         {
-            var retryPolicy = CreateWaitAndRetryPolicy([TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30) ], 
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals, 
                                                        ex => !ex.StatusCode.Equals(HttpStatusCode.Created), 
                                                        $"Creating rules for {chatbotShortName}");
 
@@ -101,7 +107,7 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
     {
         try
         {
-            var retryPolicy = CreateWaitAndRetryPolicy([TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30) ], 
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals, 
                                                        ex => !ex.StatusCode.Equals(HttpStatusCode.OK), 
                                                        $"Getting all applications for tenantId {tenantId}");
 
@@ -122,7 +128,7 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
     {
         try
         {
-            var retryPolicy = CreateWaitAndRetryPolicy([TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30) ], 
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals, 
                                                        ex => ex.Content is not null && !ex.Content.Contains("there are no saved queues"), 
                                                        $"Getting {chatbotShortName} queues");
 

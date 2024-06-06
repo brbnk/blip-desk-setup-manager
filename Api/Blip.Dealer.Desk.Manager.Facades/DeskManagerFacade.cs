@@ -47,8 +47,6 @@ public sealed class DeskManagerFacade(IGoogleSheetsService googleSheetsService,
 
             var dealerGroup = group.Key;
 
-            _reportSheet.SetGroup(dealerGroup);
-
             var chatbot = SetupChatbot(request.Brand, dealerGroup, request.ImageUrl);
 
             tasks.Add(() => HandleChatbotCreationAsync(chatbot, group));
@@ -117,8 +115,7 @@ public sealed class DeskManagerFacade(IGoogleSheetsService googleSheetsService,
                 return;
 
             _groups.Add(shortName);
-            _reportSheet.SetChatbotStepStatus(success: true);
-
+            
             // Publish flow
         }
         else
@@ -126,6 +123,8 @@ public sealed class DeskManagerFacade(IGoogleSheetsService googleSheetsService,
             logger.Warning("Group chatbot already exists {FullName}", chatbot.FullName);
         }
         
+        _reportSheet.SetChatbotStepStatus(success: true);
+
         await HandleQueuesCreation(shortName, dealers);
     }
 
@@ -141,8 +140,6 @@ public sealed class DeskManagerFacade(IGoogleSheetsService googleSheetsService,
 
         foreach (var dealer in dealers)
         {
-            _reportSheet.SetDealer(dealer?.FantasyName);
-
             var newQueue = new Queue(dealer?.FantasyName);
 
             var queueExists = queues.Any(q => 
@@ -167,6 +164,7 @@ public sealed class DeskManagerFacade(IGoogleSheetsService googleSheetsService,
 
         if (!request.Queues.Any()) 
         {
+            _reportSheet.SetRulesStepStatus(success: true);
             logger.Warning("Empty list after remove existing queues: {ChabotShortName}", chatbotShortName);
             return;
         }
@@ -175,6 +173,7 @@ public sealed class DeskManagerFacade(IGoogleSheetsService googleSheetsService,
 
         if (success)
         {
+            _reportSheet.SetQueuesStepStatus(success: true);
             await HandleRulesCreation(chatbotShortName, rulesRequest);
         }
     }
@@ -189,6 +188,18 @@ public sealed class DeskManagerFacade(IGoogleSheetsService googleSheetsService,
             logger.Information("Setup was configured with success! {ChabotShortName}", chatbotShortName);
         }
 
-        _report.Add(_reportSheet);
+        _report.Add(CreateSheetIntance(_reportSheet));
+    }
+
+    public static ReportSheet CreateSheetIntance(ReportSheet sheet)
+    {
+        var newSheet = new ReportSheet(); 
+
+        newSheet.SetBotId(sheet.BotId);
+        newSheet.SetChatbotStepStatus(success: sheet.ChatbotStepStatus.Equals("OK"));
+        newSheet.SetQueuesStepStatus(success: sheet.QueuesStepStatus.Equals("OK"));
+        newSheet.SetRulesStepStatus(success: sheet.RulesStepStatus.Equals("OK"));
+
+        return newSheet;
     }
 }

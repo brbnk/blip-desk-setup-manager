@@ -6,11 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace Blip.Dealer.Desk.Manager.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class DeskManagerController(IDeskManagerFacade deskManagerFacade) : ControllerBase
 {
     
-    [HttpPost]
+    [HttpPost("dealers-setup")]
     public async Task<IActionResult> PublishDealerSetupAsync([FromHeader] string token, 
                                                              [FromBody] PublishDealerSetupRequest request)
     {   
@@ -23,11 +23,11 @@ public class DeskManagerController(IDeskManagerFacade deskManagerFacade) : Contr
 
         var sb = new StringBuilder();
         
-        sb.AppendLine("Group,Dealer,BotId,ChatbotStatus,QueuesStatus,RulesStatus");
+        sb.AppendLine("BotId,ChatbotStatus,QueuesStatus,RulesStatus");
 
         foreach (var row in rows)
         {
-            sb.AppendLine($"{row}");
+            sb.AppendLine($"{row.ToString()}");
         }
 
         return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv", $"{Guid.NewGuid()}.csv");

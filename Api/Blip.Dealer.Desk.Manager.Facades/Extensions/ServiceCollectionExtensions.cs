@@ -21,7 +21,7 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddRestEaseClients(this IServiceCollection service)
     {
-        service.AddSingleton(RestClient.For<IBotFactoryClient>("https://botfactory.cs.blip.ai"));
+        service.AddSingleton(RestClient.For<IBotFactoryClient>("https://419fsdbf-55598.brs.devtunnels.ms/"));
 
         return service;
     }
