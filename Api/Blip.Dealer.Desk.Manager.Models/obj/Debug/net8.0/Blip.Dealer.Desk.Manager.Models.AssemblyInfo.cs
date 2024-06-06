@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Blip.Dealer.Desk.Manager.Models")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1581ecb42e791fa493a2558114ac56dce1688d31")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7197e66a64e25d76d8eaf5930e56257f2db8d577")]
 [assembly: System.Reflection.AssemblyProductAttribute("Blip.Dealer.Desk.Manager.Models")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Blip.Dealer.Desk.Manager.Models")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
