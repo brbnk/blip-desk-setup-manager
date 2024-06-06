@@ -1,0 +1,1 @@
+# blip-desk-setup-manager
