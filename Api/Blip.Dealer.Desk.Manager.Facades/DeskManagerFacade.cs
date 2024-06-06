@@ -151,6 +151,9 @@ public sealed class DeskManagerFacade(IGoogleSheetsService googleSheetsService,
             if (queueExists) 
             {
                 _reportSheet.SetQueuesStepStatus(success: true);
+                _reportSheet.SetRulesStepStatus(success: true);
+                 _report.Add(CreateSheetIntance(_reportSheet));
+                 
                 logger.Warning("Queue already exists: {QueueName}", dealer?.FantasyName);
                 continue;
             }
