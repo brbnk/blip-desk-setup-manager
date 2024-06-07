@@ -14,8 +14,8 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
     private string _token = string.Empty;
 
     private readonly IEnumerable<TimeSpan> _intervals = [
-        TimeSpan.FromSeconds(10), 
-        TimeSpan.FromSeconds(30), 
+        TimeSpan.FromSeconds(10),
+        TimeSpan.FromSeconds(30),
         TimeSpan.FromSeconds(60)
     ];
 
@@ -37,8 +37,8 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
     {
         try
         {
-            var retryPolicy = CreateWaitAndRetryPolicy(_intervals, 
-                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.Forbidden), 
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals,
+                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.Forbidden),
                                                        $"Create chatbot for {request.FullName}");
 
             await retryPolicy.ExecuteAsync(() =>
@@ -65,11 +65,11 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
     {
         try
         {
-            var retryPolicy = CreateWaitAndRetryPolicy(_intervals, 
-                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.Created), 
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals,
+                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.Created),
                                                        $"Creating queues for {chatbotShortName}");
 
-            await retryPolicy.ExecuteAsync(() => 
+            await retryPolicy.ExecuteAsync(() =>
                 client.CreateQueuesAsync(_token, chatbotShortName, request)
             );
 
@@ -86,11 +86,11 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
     {
         try
         {
-            var retryPolicy = CreateWaitAndRetryPolicy(_intervals, 
-                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.Created), 
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals,
+                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.Created),
                                                        $"Creating rules for {chatbotShortName}");
 
-            await retryPolicy.ExecuteAsync(() => 
+            await retryPolicy.ExecuteAsync(() =>
                 client.CreateRulesAsync(_token, chatbotShortName, request)
             );
 
@@ -107,11 +107,11 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
     {
         try
         {
-            var retryPolicy = CreateWaitAndRetryPolicy(_intervals, 
-                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.OK), 
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals,
+                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.OK),
                                                        $"Getting all applications for tenantId {tenantId}");
 
-            var applications = await retryPolicy.ExecuteAsync(() => 
+            var applications = await retryPolicy.ExecuteAsync(() =>
                 client.GetAllAplicationsAsync(_token, tenantId)
             );
 
@@ -124,15 +124,36 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
         }
     }
 
+    public async Task<Application> GetApplicationAsync(string shortName)
+    {
+        try
+        {
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals,
+                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.OK),
+                                                       $"Getting access key for chatbot {shortName}");
+
+            var application = await retryPolicy.ExecuteAsync(() =>
+                client.GetAplicationAsync(_token, shortName)
+            );
+
+            return application;                            
+        }
+        catch (Exception ex)
+        {
+            logger.Error("Error to get access key for chabot {Chatbot}: {ErrorMessage}", shortName, ex.Message);
+            return null;
+        }
+    }
+
     public async Task<IEnumerable<Queue>> GetAllQueuesAsync(string chatbotShortName)
     {
         try
         {
-            var retryPolicy = CreateWaitAndRetryPolicy(_intervals, 
-                                                       ex => ex.Content is not null && !ex.Content.Contains("there are no saved queues"), 
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals,
+                                                       ex => ex.Content is not null && !ex.Content.Contains("there are no saved queues"),
                                                        $"Getting {chatbotShortName} queues");
 
-            var queues = await retryPolicy.ExecuteAsync(() => 
+            var queues = await retryPolicy.ExecuteAsync(() =>
                 client.GetAllQueuesAsync(_token, chatbotShortName)
             );
 

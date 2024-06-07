@@ -12,9 +12,9 @@ using Queue = Blip.Dealer.Desk.Manager.Models.Blip.Queue;
 
 namespace Blip.Dealer.Desk.Manager.Facades;
 
-public sealed class DeskManagerFacade(IGoogleSheetsService googleSheetsService,
+public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
                                       IBotFactoryService botFactoryService,
-                                      ILogger logger) : IDeskManagerFacade
+                                      ILogger logger) : IDealerSetupFacade
 {
     private readonly IList<string> _groups = [];
     private IEnumerable<Application> _applications = [];
@@ -29,6 +29,7 @@ public sealed class DeskManagerFacade(IGoogleSheetsService googleSheetsService,
         botFactoryService.SetToken(request.GetBearerToken());
 
         _tenant = request.Tenant;
+
         _applications = await botFactoryService.GetAllApplicationsAsync(request.Tenant);
 
         if (_applications is null)
@@ -37,7 +38,10 @@ public sealed class DeskManagerFacade(IGoogleSheetsService googleSheetsService,
             throw new Exception("Error to get all applications");
         }
         
-        var groups = await ReadAndGroupDealersAsync(request.SpreadSheetId, request.SheetName, request.Range, request.Brand);
+        var groups = await googleSheetsService.ReadAndGroupDealersAsync(request.DataSource.SpreadSheetId, 
+                                                                        request.DataSource.Name, 
+                                                                        request.DataSource.Range, 
+                                                                        request.Brand);
 
         var tasks = new List<Func<Task>>();
 
@@ -60,32 +64,7 @@ public sealed class DeskManagerFacade(IGoogleSheetsService googleSheetsService,
         return _report;
     }
 
-    private async Task<IEnumerable<IGrouping<string, DealerSetupSheet>>> ReadAndGroupDealersAsync(string spreadSheetId, string sheetName, string range, string brand)
-    {
-        try
-        {
-            var dealers = await googleSheetsService.SetSpreadSheetId(spreadSheetId)
-                                                   .ReadAsync<DealerSetupSheet>(sheetName, range);
-
-            if (!dealers.Any())
-            {
-                logger.Warning("Sheet is empty");
-                throw new Exception("Sheet is empty");
-            }
-
-            var groups = dealers.Where(d => !string.IsNullOrWhiteSpace(d.Code) && brand.Equals(d.Brand))
-                                .GroupBy(d => d.Group);
-
-            return groups;
-        }
-        catch(Exception ex)
-        {
-            logger.Error("Unable to read Dealers Setup Sheet: {ErrorMessage}", ex.Message);
-            throw;
-        }
-    }
-
-    private Chatbot SetupChatbot(string brand, string dealerGroup, string imageUrl)
+    private Chatbot SetupChatbot(string brand, string dealerGroup, string imageUrl = "")
     {
         var name =  $"{brand.Trim().ToUpper()} - {dealerGroup}";
         
@@ -152,8 +131,9 @@ public sealed class DeskManagerFacade(IGoogleSheetsService googleSheetsService,
             {
                 _reportSheet.SetQueuesStepStatus(success: true);
                 _reportSheet.SetRulesStepStatus(success: true);
-                 _report.Add(CreateSheetIntance(_reportSheet));
-                 
+
+                _report.Add(CreateSheetIntance(_reportSheet));
+
                 logger.Warning("Queue already exists: {QueueName}", dealer?.FantasyName);
                 continue;
             }

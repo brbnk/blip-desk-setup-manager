@@ -3,7 +3,7 @@ using Blip.Dealer.Desk.Manager.Models.Request;
 
 namespace Blip.Dealer.Desk.Manager.Facades.Interfaces;
 
-public interface IDeskManagerFacade
+public interface IDealerSetupFacade
 {
     public Task<IList<ReportSheet>> PublishDealerSetupAsync(PublishDealerSetupRequest request);
 }

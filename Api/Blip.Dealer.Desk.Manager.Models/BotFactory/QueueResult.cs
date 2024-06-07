@@ -15,4 +15,7 @@ public sealed class Queue
 {
     [JsonProperty("name")]
     public string Name { get; set; }
+
+    [JsonProperty("uniqueId")]
+    public string UniqueId { get; set; }
 }

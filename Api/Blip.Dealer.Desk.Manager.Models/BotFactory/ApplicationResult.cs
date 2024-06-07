@@ -18,4 +18,7 @@ public sealed class Application
 
     [JsonProperty("shortName")]
     public string ShortName { get; set; }
+
+    [JsonProperty("accessKey")]
+    public string AccessKey { get; set; }
 }

@@ -13,6 +13,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDependecyInjection();
 builder.Services.AddRestEaseClients();
 builder.Services.AddSerilog();
+builder.Services.AddBlipSerializer();
 
 builder.Services.Configure<GoogleSheetsSettings>(builder.Configuration.GetSection(nameof(GoogleSheetsSettings)));
 

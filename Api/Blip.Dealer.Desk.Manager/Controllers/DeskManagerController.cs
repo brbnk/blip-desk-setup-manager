@@ -7,7 +7,8 @@ namespace Blip.Dealer.Desk.Manager.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class DeskManagerController(IDeskManagerFacade deskManagerFacade) : ControllerBase
+public class DeskManagerController(IDealerSetupFacade deskManagerFacade,
+                                   IServiceHourFacade serviceHourFacade) : ControllerBase
 {
     
     [HttpPost("dealers-setup")]
@@ -31,5 +32,16 @@ public class DeskManagerController(IDeskManagerFacade deskManagerFacade) : Contr
         }
 
         return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv", $"{Guid.NewGuid()}.csv");
+    }
+
+    [HttpPost("dealers-service-hours")]
+    public async Task<IActionResult> PublishDealerServiceHoursAsync([FromHeader] string token,
+                                                                    [FromBody] PublishServiceHoursRequest request)
+    {
+        request.SetBearerToken(token);
+
+        await serviceHourFacade.PublishDealersServiceHoursAsync(request);
+
+        return Ok();
     }
 }

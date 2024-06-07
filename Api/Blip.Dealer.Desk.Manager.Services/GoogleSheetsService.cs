@@ -4,6 +4,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Sheets.v4;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Blip.Dealer.Desk.Manager.Services;
 
@@ -12,6 +13,7 @@ public class GoogleSheetsService : IGoogleSheetsService
   private SheetsService _sheetsService => Authenticate();
   private readonly GoogleSheetsSettings _googleSheetsSettings;
   private string _spreadSheetId;
+  private readonly ILogger _logger;
 
   private static readonly string[] _columns = [
     "A",
@@ -42,9 +44,10 @@ public class GoogleSheetsService : IGoogleSheetsService
     "Z"
   ];
 
-  public GoogleSheetsService(IOptions<GoogleSheetsSettings> options)
+  public GoogleSheetsService(ILogger logger, IOptions<GoogleSheetsSettings> options)
   {
     _googleSheetsSettings = options.Value;
+    _logger = logger;
   }
 
   public GoogleSheetsService SetSpreadSheetId(string spreadSheetId)
@@ -76,6 +79,33 @@ public class GoogleSheetsService : IGoogleSheetsService
     return sheet;
   }
 
+  public async Task<IEnumerable<IGrouping<string, DealerSetupSheet>>> ReadAndGroupDealersAsync(string spreadSheetId, string sheetName, string range, string brand)
+  {
+    try
+    {
+      var dealers = await SetSpreadSheetId(spreadSheetId).ReadAsync<DealerSetupSheet>(sheetName, range);
+
+      if (!dealers.Any())
+      {
+        _logger.Warning("Sheet is empty");
+        
+        throw new Exception("Sheet is empty");
+      }
+
+      var groups = dealers.Where(d => !string.IsNullOrWhiteSpace(d.Code) && brand.Equals(d.Brand))
+                          .GroupBy(d => d.Group);
+
+      return groups;
+    }
+    catch (Exception ex)
+    {
+      _logger.Error("Unable to read Dealers Setup Sheet: {ErrorMessage}", ex.Message);
+      throw;
+    }
+  }
+
+  #region Private Methods
+
   private SheetsService Authenticate()
   {
     var credentials = JsonConvert.SerializeObject(_googleSheetsSettings.Credentials);
@@ -94,4 +124,6 @@ public class GoogleSheetsService : IGoogleSheetsService
       ApplicationName = _googleSheetsSettings.ApplicationName
     });
   }
+
+  #endregion
 }

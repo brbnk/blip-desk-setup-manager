@@ -8,6 +8,9 @@ public interface IBotFactoryClient
 {
     private const string ACCESS_TOKEN_HEADER = "X-Blip-User-Access-Token";
 
+    [Get("application")]
+    public Task<Application> GetAplicationAsync([Header(ACCESS_TOKEN_HEADER)] string token, string shortName);
+
     [Get("application/all")]
     public Task<ApplicationResult> GetAllAplicationsAsync([Header(ACCESS_TOKEN_HEADER)] string token, [Query("tenant-id")] string tenantId);
 

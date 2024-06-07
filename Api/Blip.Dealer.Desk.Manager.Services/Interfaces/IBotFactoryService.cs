@@ -5,6 +5,8 @@ namespace Blip.Dealer.Desk.Manager.Services.Interfaces;
 
 public interface IBotFactoryService
 {
+    public Task<Application> GetApplicationAsync(string shortName);
+
     public Task<IEnumerable<Application>> GetAllApplicationsAsync(string tenantId);
 
     public Task<bool> CreateChatbotAsync(CreateChatbotRequest request);

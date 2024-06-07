@@ -3,6 +3,7 @@ obj/*
 
 Api/Blip.Dealer.Desk.Manager/bin/*
 Api/Blip.Dealer.Desk.Manager/obj/*
+Api/Blip.Dealer.Desk.Manager/*.txt
 
 Api/Blip.Dealer.Desk.Manager.Facades/bin/*
 Api/Blip.Dealer.Desk.Manager.Facades/obj/*
