@@ -1,4 +1,5 @@
 using System.Text;
+using Blip.Dealer.Desk.Manager.Facades;
 using Blip.Dealer.Desk.Manager.Facades.Interfaces;
 using Blip.Dealer.Desk.Manager.Models.Request;
 using Microsoft.AspNetCore.Mvc;
@@ -7,11 +8,13 @@ namespace Blip.Dealer.Desk.Manager.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class DeskManagerController(IDealerSetupFacade deskManagerFacade,
-                                   IServiceHourFacade serviceHourFacade) : ControllerBase
+public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
+                                    IServiceHourFacade serviceHourFacade,
+                                    ITagsFacade tagsFacade,
+                                    ICustomRepliesFacade customRepliesFacade) : ControllerBase
 {
     
-    [HttpPost("dealers-setup")]
+    [HttpPost("dealers")]
     public async Task<IActionResult> PublishDealerSetupAsync([FromHeader] string token, 
                                                              [FromBody] PublishDealerSetupRequest request)
     {   
@@ -34,13 +37,35 @@ public class DeskManagerController(IDealerSetupFacade deskManagerFacade,
         return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv", $"{Guid.NewGuid()}.csv");
     }
 
-    [HttpPost("dealers-service-hours")]
+    [HttpPost("service-hours")]
     public async Task<IActionResult> PublishDealerServiceHoursAsync([FromHeader] string token,
                                                                     [FromBody] PublishServiceHoursRequest request)
     {
         request.SetBearerToken(token);
 
         await serviceHourFacade.PublishDealersServiceHoursAsync(request);
+
+        return Ok();
+    }
+
+    [HttpPost("tags")]
+    public async Task<IActionResult> PublishTagsAsync([FromHeader] string token,
+                                                      [FromBody] PublishTagsRequest request)
+    {
+        request.SetBearerToken(token);
+
+        await tagsFacade.PublishTagsAsync(request);
+
+        return Ok();
+    }
+
+    [HttpPost("custom-reply")]
+    public async Task<IActionResult> PublishCustomRepliesAsync([FromHeader] string token,
+                                                               [FromBody] PublishCustomRepliesRequest request)
+    {
+        request.SetBearerToken(token);
+
+        await customRepliesFacade.PublishCustomRepliesAsync(request);
 
         return Ok();
     }

@@ -51,7 +51,7 @@ public sealed class ServiceHourFacade(IGoogleSheetsService googleSheetsService,
                 continue;
             }
 
-            tasks.Add(() => HandleServiceHoursPublish(application, request.WorkingHours));
+            tasks.Add(() => HandleServiceHoursPublishAsync(application, request.WorkingHours));
         }   
 
         foreach (var task in tasks)
@@ -67,53 +67,60 @@ public sealed class ServiceHourFacade(IGoogleSheetsService googleSheetsService,
         return new Chatbot(name, tenant, imageUrl: "");
     }
 
-    private async Task HandleServiceHoursPublish(Application application, IList<AttendanceHourItem> workingHours)
+    private async Task HandleServiceHoursPublishAsync(Application application, IList<AttendanceHourItem> workingHours)
     {
-        logger.Information("Starting to create service hours for {Dealer}",  application.Name);
-
-        // Get AccessKey
-        var chatbot = await botFactoryService.GetApplicationAsync(application.ShortName);
-
-        if (chatbot is null)
-            return;
-
-        // Build Authorization key
-        var accessKeyDecoded = Encoding.UTF8.GetString(Convert.FromBase64String(chatbot.AccessKey));
-        var rawAuthorization = $"{chatbot.ShortName}:{accessKeyDecoded}";
-        var botAuthKey = $"Key {Convert.ToBase64String(Encoding.UTF8.GetBytes(rawAuthorization))}";
-
-        // Request queues
-        var queues = await botFactoryService.GetAllQueuesAsync(chatbot.ShortName);
-
-        if (queues is null)
-            return;
-
-        var command = new Command()
+        if (workingHours.Any())
         {
-            Uri = "/attendance-hour",
-            Method = CommandMethod.Set,
-            To = "postmaster@desk.msging.net"
-        };
+            logger.Information("Starting to create service hours for {Dealer}",  application.Name);
 
-        // Publish service hour for each queue
-        foreach (var queue in queues)
+            // Get AccessKey
+            var chatbot = await botFactoryService.GetApplicationAsync(application.ShortName);
+
+            if (chatbot is null)
+                return;
+
+            // Build Authorization key
+            var accessKeyDecoded = Encoding.UTF8.GetString(Convert.FromBase64String(chatbot.AccessKey));
+            var rawAuthorization = $"{chatbot.ShortName}:{accessKeyDecoded}";
+            var botAuthKey = $"Key {Convert.ToBase64String(Encoding.UTF8.GetBytes(rawAuthorization))}";
+
+            // Request queues
+            var queues = await botFactoryService.GetAllQueuesAsync(chatbot.ShortName);
+
+            if (queues is not null)
+            {
+                var command = new Command()
+                {
+                    Uri = "/attendance-hour",
+                    Method = CommandMethod.Set,
+                    To = "postmaster@desk.msging.net"
+                };
+
+                // Publish service hour for each queue
+                foreach (var queue in queues)
+                {
+                    var serviceHour = CreateServiceHour(queue, workingHours);
+
+                    command.Resource = new ServiceHourDocument(serviceHour);
+
+                    var cts = new CancellationTokenSource();
+
+                    var result = await _client.SendCommandAsync(botAuthKey, command, cts.Token);
+
+                    if (result.Status == CommandStatus.Success)
+                    {
+                        logger.Information("Success to configure service hours for {QueueName}", queue.Name);
+                    }
+                    else 
+                    {
+                        logger.Error("Error to configure service hours for {QueueName}", queue.Name);
+                    }
+                }
+            }
+        }
+        else 
         {
-            var serviceHour = CreateServiceHour(queue, workingHours);
-
-            command.Resource = new ServiceHourDocument(serviceHour);
-
-            var cts = new CancellationTokenSource();
-
-            var result = await _client.SendCommandAsync(botAuthKey, command, cts.Token);
-
-            if (result.Status == CommandStatus.Success)
-            {
-                logger.Information("Success to configure service hours for {QueueName}", queue.Name);
-            }
-            else 
-            {
-                logger.Error("Error to configure service hours for {QueueName}", queue.Name);
-            }
+            logger.Warning("Skiping service hours creation for {Dealer} because its empty", application.ShortName);
         }
     }
 

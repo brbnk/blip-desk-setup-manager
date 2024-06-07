@@ -71,7 +71,7 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
         return new Chatbot(name, _tenant, imageUrl);
     }
 
-    private async Task HandleChatbotCreationAsync(Chatbot chatbot, IGrouping<string, DealerSetupSheet?> dealers)
+    private async Task HandleChatbotCreationAsync(Chatbot chatbot, IGrouping<string, DealerSetupSheet> dealers)
     {
         var application = _applications.FirstOrDefault(a => a.ShortName.Contains(chatbot.ShortName));
 
@@ -107,7 +107,7 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
         await HandleQueuesCreation(shortName, dealers);
     }
 
-    private async Task HandleQueuesCreation(string chatbotShortName, IGrouping<string, DealerSetupSheet?> dealers)
+    private async Task HandleQueuesCreation(string chatbotShortName, IGrouping<string, DealerSetupSheet> dealers)
     {
         var queues = await botFactoryService.GetAllQueuesAsync(chatbotShortName);
 

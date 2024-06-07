@@ -1,5 +1,4 @@
 using Blip.Dealer.Desk.Manager.Models.BotFactory;
-using Blip.Dealer.Desk.Manager.Models.Enums;
 
 namespace Blip.Dealer.Desk.Manager.Services.Interfaces;
 
@@ -16,6 +15,10 @@ public interface IBotFactoryService
     public Task<bool> CreateQueuesAsync(string chatbotShortName, CreateQueuesRequest request);
 
     public Task<bool> CreateRulesAsync(string chatbotShortName, CreateRulesRequest request);
+
+    public Task<IEnumerable<string>> GetTagsAsync(string chatbotShortName);
+
+    public Task CreateTagsAsync(string chatbotShortName, CreateTagsRequest request);
 
     public void SetToken(string token);
 }

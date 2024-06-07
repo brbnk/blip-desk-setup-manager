@@ -25,4 +25,10 @@ public interface IBotFactoryClient
 
     [Post("desk/rules")]
     public Task CreateRulesAsync([Header(ACCESS_TOKEN_HEADER)] string token, string shortName, [Body] CreateRulesRequest request);
+    
+    [Get("desk/tags")]
+    public Task<TagResult> GetTagsASync([Header(ACCESS_TOKEN_HEADER)] string token, string shortName);
+
+    [Post("desk/tags")]
+    public Task CreateTagsAsync([Header(ACCESS_TOKEN_HEADER)] string token, string shortName, [Body] CreateTagsRequest request);
 }

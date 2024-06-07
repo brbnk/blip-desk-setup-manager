@@ -77,7 +77,7 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
         }
         catch (ApiException restEx)
         {
-            logger.Error("Error to create queues for Dealer: {ChatbotShortName}", chatbotShortName);
+            logger.Error("Error to create queues for Dealer: {ChatbotShortName}: {ErrorMessage}", chatbotShortName, restEx.Content);
             return false;
         }
     }
@@ -98,8 +98,28 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
         }
         catch (ApiException restEx)
         {
-            logger.Error("Error to create queue rules for {ChatbotShortName}", chatbotShortName);
+            logger.Error("Error to create queue rules for {ChatbotShortName}: {ErrorMessage}", chatbotShortName, restEx.Content);
             return false;
+        }
+    }
+
+    public async Task CreateTagsAsync(string chatbotShortName, CreateTagsRequest request)
+    {
+        try
+        {
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals,
+                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.Created),
+                                                       $"Creating tags for {chatbotShortName}");
+
+            await retryPolicy.ExecuteAsync(() =>
+                client.CreateTagsAsync(_token, chatbotShortName, request)
+            );
+
+            logger.Information("Success to create tags for {Dealer}", chatbotShortName);
+        }
+        catch (ApiException restEx)
+        {
+            logger.Error("Error to create tags for {Dealer}: {ErrorMessage}", chatbotShortName, restEx.Content);
         }
     }
 
@@ -141,6 +161,27 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
         catch (Exception ex)
         {
             logger.Error("Error to get access key for chabot {Chatbot}: {ErrorMessage}", shortName, ex.Message);
+            return null;
+        }
+    }
+
+    public async Task<IEnumerable<string>> GetTagsAsync(string shortName)
+    {
+        try
+        {
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals,
+                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.OK),
+                                                       $"Getting tags for chatbot {shortName}");
+
+            var application = await retryPolicy.ExecuteAsync(() =>
+                client.GetTagsASync(_token, shortName)
+            );
+
+            return application.Results.Select(t => t.ToLower());                            
+        }
+        catch (Exception ex)
+        {
+            logger.Error("Error to get tags for chabot {Chatbot}: {ErrorMessage}", shortName, ex.Message);
             return null;
         }
     }
