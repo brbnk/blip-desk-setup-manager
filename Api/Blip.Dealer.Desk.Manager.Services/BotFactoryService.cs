@@ -2,6 +2,7 @@ using System.Net;
 using Blip.Dealer.Desk.Manager.Models.BotFactory;
 using Blip.Dealer.Desk.Manager.Services.Interfaces;
 using Blip.Dealer.Desk.Manager.Services.RestEase;
+using Blip.Dealer.Desk.Manager.Services.Extensions;
 using Polly;
 using Polly.Retry;
 using RestEase;
@@ -207,6 +208,26 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
 
             logger.Error("RestEase Error to get chatbot group queues: {ShortName}", chatbotShortName);
             return null;
+        }
+    }
+
+    public async Task PublishFlowAsync(string chatbotShortName, Stream file)
+    {
+        try
+        {
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals,
+                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.Created),
+                                                       $"Creating tags for {chatbotShortName}");
+
+            await retryPolicy.ExecuteAsync(() =>
+                client.PublishFlowAsync(file, _token, chatbotShortName)
+            );
+
+            logger.Information("Success to publish flow for {Dealer}", chatbotShortName);
+        }
+        catch (ApiException restEx)
+        {
+            logger.Error("Error to publish flow for {Dealer}: {ErrorMessage}", chatbotShortName, restEx.Content);
         }
     }
 

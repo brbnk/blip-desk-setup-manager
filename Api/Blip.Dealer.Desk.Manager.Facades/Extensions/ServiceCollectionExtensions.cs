@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IServiceHourFacade, ServiceHourFacade>();
         services.AddScoped<ITagsFacade, TagsFacade>();
         services.AddScoped<ICustomRepliesFacade, CustomRepliesFacade>();
+        services.AddScoped<IFlowFacade, FlowFacade>();
 
         services.AddSingleton<IBlipClientFactory, BlipClientFactory>();
 
