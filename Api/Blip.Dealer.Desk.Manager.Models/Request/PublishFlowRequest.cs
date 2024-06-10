@@ -15,4 +15,8 @@ public sealed class PublishFlowRequest : BotFactoryRequest
 
   [JsonProperty("dataSource")]
   public GoogleSheetsRequest DataSource { get; set; }
+
+  [Required]
+  [JsonProperty("flowStr")]
+  public string FlowStr { get; set; }
 }

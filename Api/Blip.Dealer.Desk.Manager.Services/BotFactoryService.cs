@@ -217,7 +217,7 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
         {
             var retryPolicy = CreateWaitAndRetryPolicy(_intervals,
                                                        ex => !ex.StatusCode.Equals(HttpStatusCode.Created),
-                                                       $"Creating tags for {chatbotShortName}");
+                                                       $"Publishing flow async {chatbotShortName}");
 
             await retryPolicy.ExecuteAsync(() =>
                 client.PublishFlowAsync(file, _token, chatbotShortName)

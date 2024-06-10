@@ -87,7 +87,8 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
             {
                 SpreadSheetId = spreadSheetId,
                 Name = sheetName
-            }
+            },
+            FlowStr = "<JSON_STRING_HERE>"
         };
 
         request.SetBearerToken(token);

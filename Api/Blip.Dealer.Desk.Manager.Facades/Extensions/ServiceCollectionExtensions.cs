@@ -31,7 +31,7 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddRestEaseClients(this IServiceCollection services)
     {
-        services.AddSingleton(RestClient.For<IBotFactoryClient>("https://mcmh01bt-55598.brs.devtunnels.ms/"));
+        services.AddSingleton(RestClient.For<IBotFactoryClient>("https://98tz9p2x-55598.brs.devtunnels.ms/"));
 
         return services;
     }
