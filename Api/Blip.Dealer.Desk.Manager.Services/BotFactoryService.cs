@@ -124,6 +124,26 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
         }
     }
 
+    public async Task CreateAttendantsAsync(string chatbotShortName, CreateAttendantsRequest request)
+    {
+        try
+        {
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals,
+                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.Created),
+                                                       $"Creating attendats for {chatbotShortName}");
+
+            await retryPolicy.ExecuteAsync(() =>
+                client.CreateAttendantsAsync(_token, chatbotShortName, request)
+            );
+
+            logger.Information("Success to create attendants for {Dealer}", chatbotShortName);
+        }
+        catch (ApiException restEx)
+        {
+            logger.Error("Error to create attendants for {Dealer}: {ErrorMessage}", chatbotShortName, restEx.Content);
+        }
+    }
+
     public async Task<IEnumerable<Application>> GetAllApplicationsAsync(string tenantId)
     {
         try
