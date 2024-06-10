@@ -141,7 +141,7 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
         catch (Exception ex)
         {
             logger.Error("Error to get chatbots for tenantId {TenantId}: {ErrorMessage}", tenantId, ex.Message);
-            return null;
+            throw;
         }
     }
 

@@ -16,6 +16,7 @@ namespace Blip.Dealer.Desk.Manager.Facades;
 public sealed class ServiceHourFacade(IGoogleSheetsService googleSheetsService,
                                       IBotFactoryService botFactoryService,
                                       IBlipClientFactory blipClientFactory,
+                                      IBlipCommandService blipCommandService,
                                       ILogger logger) : IServiceHourFacade
 {
     private IEnumerable<Application> _applications = [];
@@ -28,20 +29,20 @@ public sealed class ServiceHourFacade(IGoogleSheetsService googleSheetsService,
 
         botFactoryService.SetToken(request.GetBearerToken());
 
-        _client = blipClientFactory.InitBlipClient(request.Tenant);
-
         _applications = await botFactoryService.GetAllApplicationsAsync(request.Tenant);
+
+        blipCommandService.BlipClient = blipClientFactory.InitBlipClient(request.Tenant);
 
         var groups = await googleSheetsService.ReadAndGroupDealersAsync(request.DataSource.SpreadSheetId, 
                                                                         request.DataSource.Name, 
                                                                         request.DataSource.Range, 
                                                                         request.Brand);
 
-        var tasks = new List<Func<Task>>();
+        var tasks = new List<Task>();
 
         foreach (var group in groups)
         {
-            var chatbot = SetupChatbot(request.Brand, group.Key, request.Tenant);
+            var chatbot = new Chatbot(request.Brand, group.Key, request.Tenant, imageUrl: "");
 
             var application = _applications.FirstOrDefault(a => a.ShortName.Contains(chatbot.ShortName));
 
@@ -51,20 +52,12 @@ public sealed class ServiceHourFacade(IGoogleSheetsService googleSheetsService,
                 continue;
             }
 
-            tasks.Add(() => HandleServiceHoursPublishAsync(application, request.WorkingHours));
+            tasks.Add(HandleServiceHoursPublishAsync(application, request.WorkingHours));
         }   
 
-        foreach (var task in tasks)
-        {
-            await task();
-        }
-    }
+        await Task.WhenAll(tasks.ToArray());
 
-    private static Chatbot SetupChatbot(string brand, string dealerGroup, string tenant)
-    {
-        var name =  $"{brand.Trim().ToUpper()} - {dealerGroup}";
-        
-        return new Chatbot(name, tenant, imageUrl: "");
+        logger.Information("Service hours publishing completed!");
     }
 
     private async Task HandleServiceHoursPublishAsync(Application application, IList<AttendanceHourItem> workingHours)
@@ -75,46 +68,22 @@ public sealed class ServiceHourFacade(IGoogleSheetsService googleSheetsService,
 
             // Get AccessKey
             var chatbot = await botFactoryService.GetApplicationAsync(application.ShortName);
+            var botAuthKey = chatbot?.GetAuthorizationKey();
 
-            if (chatbot is null)
+            if (chatbot is null || botAuthKey is null)
                 return;
-
-            // Build Authorization key
-            var accessKeyDecoded = Encoding.UTF8.GetString(Convert.FromBase64String(chatbot.AccessKey));
-            var rawAuthorization = $"{chatbot.ShortName}:{accessKeyDecoded}";
-            var botAuthKey = $"Key {Convert.ToBase64String(Encoding.UTF8.GetBytes(rawAuthorization))}";
 
             // Request queues
             var queues = await botFactoryService.GetAllQueuesAsync(chatbot.ShortName);
 
             if (queues is not null)
             {
-                var command = new Command()
-                {
-                    Uri = "/attendance-hour",
-                    Method = CommandMethod.Set,
-                    To = "postmaster@desk.msging.net"
-                };
-
                 // Publish service hour for each queue
                 foreach (var queue in queues)
                 {
                     var serviceHour = CreateServiceHour(queue, workingHours);
 
-                    command.Resource = new ServiceHourDocument(serviceHour);
-
-                    var cts = new CancellationTokenSource();
-
-                    var result = await _client.SendCommandAsync(botAuthKey, command, cts.Token);
-
-                    if (result.Status == CommandStatus.Success)
-                    {
-                        logger.Information("Success to configure service hours for {QueueName}", queue.Name);
-                    }
-                    else 
-                    {
-                        logger.Error("Error to configure service hours for {QueueName}", queue.Name);
-                    }
+                    await blipCommandService.PublishServiceHoursAsync(botAuthKey, serviceHour);
                 }
             }
         }

@@ -15,11 +15,10 @@ namespace Blip.Dealer.Desk.Manager.Facades;
 public sealed class CustomRepliesFacade(IBotFactoryService botFactoryService,
                                         IGoogleSheetsService googleSheetsService,
                                         IBlipClientFactory blipClientFactory,
+                                        IBlipCommandService blipCommandService,
                                         ILogger logger) : ICustomRepliesFacade
 {
     private IEnumerable<Application> _applications = [];
-
-    private IBlipClient _client;
 
     public async Task PublishCustomRepliesAsync(PublishCustomRepliesRequest request)
     {
@@ -29,7 +28,7 @@ public sealed class CustomRepliesFacade(IBotFactoryService botFactoryService,
 
         _applications = await botFactoryService.GetAllApplicationsAsync(request.Tenant);
 
-        _client = blipClientFactory.InitBlipClient(request.Tenant);
+        blipCommandService.BlipClient = blipClientFactory.InitBlipClient(request.Tenant);
 
         var groups = await googleSheetsService.ReadAndGroupDealersAsync(request.DataSource.SpreadSheetId,
                                                                         request.DataSource.Name,
@@ -39,7 +38,7 @@ public sealed class CustomRepliesFacade(IBotFactoryService botFactoryService,
 
         foreach (var group in groups)
         {
-            var chatbot = SetupChatbot(request.Brand, group.Key, request.Tenant);
+            var chatbot = new Chatbot(request.Brand, group.Key, request.Tenant, imageUrl: "");
 
             var application = _applications.FirstOrDefault(a => a.ShortName.Contains(chatbot.ShortName));
 
@@ -57,46 +56,14 @@ public sealed class CustomRepliesFacade(IBotFactoryService botFactoryService,
         logger.Information("Custom replies publishing completed!");
     }
 
-    private static Chatbot SetupChatbot(string brand, string dealerGroup, string tenant)
-    {
-        var name = $"{brand.Trim().ToUpper()} - {dealerGroup}";
-
-        return new Chatbot(name, tenant, imageUrl: "");
-    }
-
     private async Task HandleCustomReplyPublishAsync(string shortName, IList<Item> items)
     {
         var chatbot = await botFactoryService.GetApplicationAsync(shortName);
+        var botAuthKey = chatbot?.GetAuthorizationKey();
 
-        if (chatbot is null)
+        if (chatbot is null || botAuthKey is null)
             return;
 
-        var accessKeyDecoded = Encoding.UTF8.GetString(Convert.FromBase64String(chatbot.AccessKey));
-        var rawAuthorization = $"{chatbot.ShortName}:{accessKeyDecoded}";
-        var botAuthKey = $"Key {Convert.ToBase64String(Encoding.UTF8.GetBytes(rawAuthorization))}";
-
-        var customReplyId = Guid.NewGuid();
-
-        foreach (var item in items)
-        {
-            item.Id = customReplyId.ToString();
-        }
-
-        var command = new Command()
-        {
-            Uri = $"/replies/{customReplyId}",
-            Method = CommandMethod.Set,
-            To = "postmaster@desk.msging.net",
-            Resource = new CustomReplyResource(new() { Items = items })
-        };
-
-        var cts = new CancellationTokenSource();
-
-        var result = await _client.SendCommandAsync(botAuthKey, command, cts.Token);
-
-        if (result.Status == CommandStatus.Success)
-            logger.Information("Success to create custom reply for {DealerName}", shortName);
-        else
-            logger.Error("Error to create custom reply for {DealerName}", shortName);
+        await blipCommandService.PublishCustomRepliesAsync(shortName, botAuthKey, items);
     }
 }

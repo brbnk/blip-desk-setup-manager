@@ -20,6 +20,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDealerSetupFacade, DealerSetupFacade>();
         services.AddScoped<IBotFactoryService, BotFactoryService>();
         services.AddScoped<IServiceHourFacade, ServiceHourFacade>();
+        services.AddScoped<IBlipCommandService, BlipCommandService>();
         services.AddScoped<ITagsFacade, TagsFacade>();
         services.AddScoped<ICustomRepliesFacade, CustomRepliesFacade>();
         services.AddScoped<IFlowFacade, FlowFacade>();
