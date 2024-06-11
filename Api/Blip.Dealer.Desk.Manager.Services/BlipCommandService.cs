@@ -119,6 +119,30 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
         }
     }
 
+    public async Task PublishPostmasterConfigurationAsync(string shortName, string botAuthKey)
+    {
+        var command = new Command
+        {
+            Uri = $"lime://postmaster@desk.msging.net/configuration?caller={shortName}@msging.net",
+            Method = CommandMethod.Set,
+            To = "postmaster@msging.net",
+            Resource = new PostmasterConfigurationResource()
+        };
+
+        var cts = new CancellationTokenSource();
+
+        var result = await BlipClient.SendCommandAsync(botAuthKey, command, cts.Token);
+
+        if (result.Status == CommandStatus.Success)
+        {
+            logger.Information("Success to configure postmaster configuration for {ShortName}", shortName);
+        }
+        else
+        {
+            logger.Error("Error to configure postmaster configuration for {ShortName}: {Reason}", shortName,  result.Reason?.Description);
+        }
+    }
+
     public async Task PublishServiceHoursAsync(string botAuthKey, ServiceHour serviceHour)
     {
         var command = new Command()

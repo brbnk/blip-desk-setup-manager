@@ -1,13 +1,10 @@
-using System.Text;
 using Blip.Dealer.Desk.Manager.Facades.Interfaces;
 using Blip.Dealer.Desk.Manager.Models.Blip;
 using Blip.Dealer.Desk.Manager.Models.Blip.Attendance;
-using Blip.Dealer.Desk.Manager.Models.Blip.Commands;
 using Blip.Dealer.Desk.Manager.Models.BotFactory;
 using Blip.Dealer.Desk.Manager.Models.Request;
 using Blip.Dealer.Desk.Manager.Services;
 using Blip.Dealer.Desk.Manager.Services.Interfaces;
-using Lime.Protocol;
 using Serilog;
 using Queue = Blip.Dealer.Desk.Manager.Models.BotFactory.Queue;
 
@@ -20,8 +17,6 @@ public sealed class ServiceHourFacade(IGoogleSheetsService googleSheetsService,
                                       ILogger logger) : IServiceHourFacade
 {
     private IEnumerable<Application> _applications = [];
-
-    private IBlipClient _client;
     
     public async Task PublishDealersServiceHoursAsync(PublishServiceHoursRequest request)
     {
@@ -76,11 +71,18 @@ public sealed class ServiceHourFacade(IGoogleSheetsService googleSheetsService,
             // Request queues
             var queues = await botFactoryService.GetAllQueuesAsync(chatbot.ShortName);
 
+            var defaultServiceHour = CreateDefaultServiceHour(workingHours);
+
+            await blipCommandService.PublishServiceHoursAsync(botAuthKey, defaultServiceHour);
+
             if (queues is not null)
             {
                 // Publish service hour for each queue
                 foreach (var queue in queues)
                 {
+                    if (queue.Name.Equals("Default"))
+                        continue;
+
                     var serviceHour = CreateServiceHour(queue, workingHours);
 
                     await blipCommandService.PublishServiceHoursAsync(botAuthKey, serviceHour);
@@ -93,12 +95,30 @@ public sealed class ServiceHourFacade(IGoogleSheetsService googleSheetsService,
         }
     }
 
+    private static ServiceHour CreateDefaultServiceHour(IList<AttendanceHourItem> workingHours)
+    {
+        var attendanceHour = new AttendanceHour()
+        {
+            Title = "Regular Hours",
+            Description = "Default attendance hour",
+            IsMain = true
+        };
+
+         return new ServiceHour()
+        {
+            AttendanceHour = attendanceHour,
+            Queues = [],
+            AttendanceHourScheduleItems = workingHours,
+            AttendanceHourOffItems = []
+        };
+    }
+
     private static ServiceHour CreateServiceHour(Queue queue, IList<AttendanceHourItem> workingHours)
     {
         var attendanceHour = new AttendanceHour()
         {
             Title = queue.Name,
-            Description = $"Working hours for {queue.Name}",
+            Description = $"{queue.Name} attendance hour",
             IsMain = false
         };
 
