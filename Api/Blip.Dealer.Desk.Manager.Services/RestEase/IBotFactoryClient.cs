@@ -6,6 +6,8 @@ namespace Blip.Dealer.Desk.Manager.Services.RestEase;
 [BasePath("api")]
 public interface IBotFactoryClient
 {
+    public IRequester Requester { get; }
+
     private const string ACCESS_TOKEN_HEADER = "X-Blip-User-Access-Token";
 
     [Get("application")]
@@ -31,4 +33,10 @@ public interface IBotFactoryClient
 
     [Post("desk/tags")]
     public Task CreateTagsAsync([Header(ACCESS_TOKEN_HEADER)] string token, string shortName, [Body] CreateTagsRequest request);
+
+    [Post("desk/attendants")]
+    public Task CreateAttendantsAsync([Header(ACCESS_TOKEN_HEADER)] string token, string shortName, [Body] CreateAttendantsRequest request);
+
+    [Post("flow/publish")]
+    public Task PublishFlowAsync([Body] HttpContent content);
 }

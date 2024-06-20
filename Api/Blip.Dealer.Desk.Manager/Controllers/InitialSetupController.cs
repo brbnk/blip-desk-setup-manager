@@ -11,22 +11,24 @@ namespace Blip.Dealer.Desk.Manager.Controllers;
 public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
                                     IServiceHourFacade serviceHourFacade,
                                     ITagsFacade tagsFacade,
-                                    ICustomRepliesFacade customRepliesFacade) : ControllerBase
+                                    ICustomRepliesFacade customRepliesFacade,
+                                    IAttendantsFacade attendantsFacade,
+                                    IFlowFacade flowFacade) : ControllerBase
 {
-    
+
     [HttpPost("dealers")]
-    public async Task<IActionResult> PublishDealerSetupAsync([FromHeader] string token, 
+    public async Task<IActionResult> PublishDealerSetupAsync([FromHeader] string token,
                                                              [FromBody] PublishDealerSetupRequest request)
-    {   
+    {
         request.SetBearerToken(token);
 
         var rows = await deskManagerFacade.PublishDealerSetupAsync(request);
 
-        if (!rows.Any()) 
+        if (!rows.Any())
             return NoContent();
 
         var sb = new StringBuilder();
-        
+
         sb.AppendLine("BotId,ChatbotStatus,QueuesStatus,RulesStatus");
 
         foreach (var row in rows)
@@ -66,6 +68,44 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
         request.SetBearerToken(token);
 
         await customRepliesFacade.PublishCustomRepliesAsync(request);
+
+        return Ok();
+    }
+
+    [HttpPost("attendants")]
+    public async Task<IActionResult> PublishAttendantsAsync([FromHeader] string token,
+                                                            [FromBody] PublishAttendantsRequest request)
+    {
+        request.SetBearerToken(token);
+
+        await attendantsFacade.PublishAttendantsAsync(request);
+
+        return Ok();
+    }
+
+    [HttpPost("flow")]
+    public async Task<IActionResult> PublishFlowAsync([FromHeader] string token,
+                                                      [FromHeader] string spreadSheetId,
+                                                      [FromHeader] string sheetName,
+                                                      [FromHeader] string brand,
+                                                      [FromHeader] string tenantId,
+                                                      IFormFile flow)
+    {
+        var request = new PublishFlowRequest() 
+        {
+            Brand = brand,
+            Tenant = tenantId,
+            DataSource = new GoogleSheetsRequest() 
+            {
+                SpreadSheetId = spreadSheetId,
+                Name = sheetName
+            },
+            FlowStr = ""
+        };
+
+        request.SetBearerToken(token);
+
+        await flowFacade.PublishFlowAsync(request, flow.OpenReadStream());
 
         return Ok();
     }

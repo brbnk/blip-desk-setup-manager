@@ -1,28 +1,25 @@
-using System.Text;
+
 using Blip.Dealer.Desk.Manager.Facades.Interfaces;
 using Blip.Dealer.Desk.Manager.Models.Blip;
-using Blip.Dealer.Desk.Manager.Models.Blip.Commands;
-using Blip.Dealer.Desk.Manager.Models.Blip.Replies;
 using Blip.Dealer.Desk.Manager.Models.BotFactory;
 using Blip.Dealer.Desk.Manager.Models.Request;
 using Blip.Dealer.Desk.Manager.Services;
 using Blip.Dealer.Desk.Manager.Services.Interfaces;
-using Lime.Protocol;
 using Serilog;
 
 namespace Blip.Dealer.Desk.Manager.Facades;
 
-public sealed class CustomRepliesFacade(IBotFactoryService botFactoryService,
-                                        IGoogleSheetsService googleSheetsService,
-                                        IBlipClientFactory blipClientFactory,
-                                        IBlipCommandService blipCommandService,
-                                        ILogger logger) : ICustomRepliesFacade
+public sealed class FlowFacade(IGoogleSheetsService googleSheetsService,
+                               IBotFactoryService botFactoryService,
+                               IBlipClientFactory blipClientFactory,
+                               IBlipCommandService blipCommandService,
+                               ILogger logger) : IFlowFacade
 {
     private IEnumerable<Application> _applications = [];
 
-    public async Task PublishCustomRepliesAsync(PublishCustomRepliesRequest request)
+    public async Task PublishFlowAsync(PublishFlowRequest request, Stream file)
     {
-        logger.Information("Starting to create Custom Replies...");
+        logger.Information("Starting...");
 
         botFactoryService.SetToken(request.GetBearerToken());
 
@@ -34,7 +31,7 @@ public sealed class CustomRepliesFacade(IBotFactoryService botFactoryService,
                                                                         request.DataSource.Name,
                                                                         request.DataSource.Range,
                                                                         request.Brand);
-        var tasks = new List<Task>();
+        var tasks = new List<Func<Task>>();
 
         foreach (var group in groups)
         {
@@ -48,15 +45,18 @@ public sealed class CustomRepliesFacade(IBotFactoryService botFactoryService,
                 continue;
             }
 
-            tasks.Add(HandleCustomReplyPublishAsync(application.ShortName, request.Items));
+            tasks.Add(() => HandleFlowPublishAsync(application.ShortName, request.FlowStr, file));
         }
 
-        await Task.WhenAll(tasks.ToArray());
+        foreach (var task in tasks)
+        {
+            await task();
+        }
 
-        logger.Information("Custom replies publishing completed!");
+        logger.Information("Flows publishing completed!");
     }
 
-    private async Task HandleCustomReplyPublishAsync(string shortName, IList<Item> items)
+    private async Task HandleFlowPublishAsync(string shortName, string flowStr, Stream file)
     {
         var chatbot = await botFactoryService.GetApplicationAsync(shortName);
         var botAuthKey = chatbot?.GetAuthorizationKey();
@@ -64,6 +64,14 @@ public sealed class CustomRepliesFacade(IBotFactoryService botFactoryService,
         if (chatbot is null || botAuthKey is null)
             return;
 
-        await blipCommandService.PublishCustomRepliesAsync(shortName, botAuthKey, items);
+        await botFactoryService.PublishFlowAsync(chatbot.ShortName, file);
+
+        await blipCommandService.PublishBusinessBuilderConfigurationAsync(chatbot.ShortName, chatbot.AccessKey, botAuthKey, flowStr);
+
+        await blipCommandService.PublishBuilderWorkingConfigurationAsync(chatbot.ShortName, botAuthKey);
+
+        await blipCommandService.PublishBuilderPublishedConfigurationAsync(chatbot.ShortName, botAuthKey);
+
+        await blipCommandService.PublishPostmasterConfigurationAsync(chatbot.ShortName, botAuthKey);
     }
 }

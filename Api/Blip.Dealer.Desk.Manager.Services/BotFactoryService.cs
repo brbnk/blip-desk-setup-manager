@@ -2,6 +2,7 @@ using System.Net;
 using Blip.Dealer.Desk.Manager.Models.BotFactory;
 using Blip.Dealer.Desk.Manager.Services.Interfaces;
 using Blip.Dealer.Desk.Manager.Services.RestEase;
+using Blip.Dealer.Desk.Manager.Services.Extensions;
 using Polly;
 using Polly.Retry;
 using RestEase;
@@ -123,6 +124,26 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
         }
     }
 
+    public async Task CreateAttendantsAsync(string chatbotShortName, CreateAttendantsRequest request)
+    {
+        try
+        {
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals,
+                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.Created),
+                                                       $"Creating attendats for {chatbotShortName}");
+
+            await retryPolicy.ExecuteAsync(() =>
+                client.CreateAttendantsAsync(_token, chatbotShortName, request)
+            );
+
+            logger.Information("Success to create attendants for {Dealer}", chatbotShortName);
+        }
+        catch (ApiException restEx)
+        {
+            logger.Error("Error to create attendants for {Dealer}: {ErrorMessage}", chatbotShortName, restEx.Content);
+        }
+    }
+
     public async Task<IEnumerable<Application>> GetAllApplicationsAsync(string tenantId)
     {
         try
@@ -140,7 +161,7 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
         catch (Exception ex)
         {
             logger.Error("Error to get chatbots for tenantId {TenantId}: {ErrorMessage}", tenantId, ex.Message);
-            return null;
+            throw;
         }
     }
 
@@ -207,6 +228,26 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
 
             logger.Error("RestEase Error to get chatbot group queues: {ShortName}", chatbotShortName);
             return null;
+        }
+    }
+
+    public async Task PublishFlowAsync(string chatbotShortName, Stream file)
+    {
+        try
+        {
+            var retryPolicy = CreateWaitAndRetryPolicy(_intervals,
+                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.Created),
+                                                       $"Publishing flow async {chatbotShortName}");
+
+            await retryPolicy.ExecuteAsync(() =>
+                client.PublishFlowAsync(file, _token, chatbotShortName)
+            );
+
+            logger.Information("Success to publish flow for {Dealer}", chatbotShortName);
+        }
+        catch (ApiException restEx)
+        {
+            logger.Error("Error to publish flow for {Dealer}: {ErrorMessage}", chatbotShortName, restEx.Content);
         }
     }
 

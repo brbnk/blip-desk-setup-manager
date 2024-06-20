@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace Blip.Dealer.Desk.Manager.Models.Request;
 
-public sealed class PublishTagsRequest : BotFactoryRequest
+public sealed class PublishFlowRequest : BotFactoryRequest
 {
   [Required]
   [JsonProperty("tenant")]
@@ -16,6 +16,7 @@ public sealed class PublishTagsRequest : BotFactoryRequest
   [JsonProperty("dataSource")]
   public GoogleSheetsRequest DataSource { get; set; }
 
-  [JsonProperty("tags")]
-  public IList<string> Tags { get; set; }
+  [Required]
+  [JsonProperty("flowStr")]
+  public string FlowStr { get; set; }
 }
