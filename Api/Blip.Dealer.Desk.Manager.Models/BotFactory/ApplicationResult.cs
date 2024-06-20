@@ -10,15 +10,3 @@ public sealed class ApplicationResult
     [JsonProperty("results")]
     public IEnumerable<Application> Results { get; set; }
 }
-
-public sealed class Application
-{
-    [JsonProperty("name")]
-    public string Name { get; set; }
-
-    [JsonProperty("shortName")]
-    public string ShortName { get; set; }
-
-    [JsonProperty("accessKey")]
-    public string AccessKey { get; set; }
-}

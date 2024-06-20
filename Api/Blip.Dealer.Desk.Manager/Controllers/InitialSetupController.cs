@@ -12,6 +12,7 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
                                     IServiceHourFacade serviceHourFacade,
                                     ITagsFacade tagsFacade,
                                     ICustomRepliesFacade customRepliesFacade,
+                                    IAttendantsFacade attendantsFacade,
                                     IFlowFacade flowFacade) : ControllerBase
 {
 
@@ -71,6 +72,17 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
         return Ok();
     }
 
+    [HttpPost("attendants")]
+    public async Task<IActionResult> PublishAttendantsAsync([FromHeader] string token,
+                                                            [FromBody] PublishAttendantsRequest request)
+    {
+        request.SetBearerToken(token);
+
+        await attendantsFacade.PublishAttendantsAsync(request);
+
+        return Ok();
+    }
+
     [HttpPost("flow")]
     public async Task<IActionResult> PublishFlowAsync([FromHeader] string token,
                                                       [FromHeader] string spreadSheetId,
@@ -88,7 +100,7 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
                 SpreadSheetId = spreadSheetId,
                 Name = sheetName
             },
-            FlowStr = "<JSON_STRING_HERE>"
+            FlowStr = ""
         };
 
         request.SetBearerToken(token);

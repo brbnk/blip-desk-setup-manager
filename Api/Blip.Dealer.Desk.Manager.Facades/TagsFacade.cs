@@ -31,7 +31,7 @@ public sealed class TagsFacade(IBotFactoryService botFactoryService,
 
         foreach (var group in groups)
         {
-            var chatbot = SetupChatbot(request.Brand, group.Key, request.Tenant);
+            var chatbot = new Chatbot(request.Brand, group.Key, request.Tenant, imageUrl: "");
 
             var application = _applications.FirstOrDefault(a => a.ShortName.Contains(chatbot.ShortName));
 
@@ -47,13 +47,6 @@ public sealed class TagsFacade(IBotFactoryService botFactoryService,
         await Task.WhenAll(tasks.ToArray());
 
         logger.Information("Tags publishing completed!");
-    }
-
-    private static Chatbot SetupChatbot(string brand, string dealerGroup, string tenant)
-    {
-        var name =  $"{brand.Trim().ToUpper()} - {dealerGroup}";
-        
-        return new Chatbot(name, tenant, imageUrl: "");
     }
 
     private async Task HandleTagsPublishAsync(string shortName, IList<string> newTags)
