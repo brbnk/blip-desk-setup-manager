@@ -14,7 +14,7 @@ public sealed class Rule(string team, string dealerId)
     public string Team { get; set; } = team;
 
     [JsonProperty("title")]
-    public string Title { get; set; } = "Dealer code rule";
+    public string Title { get; set; } = $"Rule for {team}";
 
     [JsonProperty("operator")]
     public string Operator { get; set; } = "And";

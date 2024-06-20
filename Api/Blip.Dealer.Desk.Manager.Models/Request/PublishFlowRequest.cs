@@ -1,10 +1,9 @@
 using System.ComponentModel.DataAnnotations;
-using Blip.Dealer.Desk.Manager.Models.Blip.Attendance;
 using Newtonsoft.Json;
 
 namespace Blip.Dealer.Desk.Manager.Models.Request;
 
-public class PublishServiceHoursRequest : BotFactoryRequest
+public sealed class PublishFlowRequest : BotFactoryRequest
 {
   [Required]
   [JsonProperty("tenant")]
@@ -18,6 +17,6 @@ public class PublishServiceHoursRequest : BotFactoryRequest
   public GoogleSheetsRequest DataSource { get; set; }
 
   [Required]
-  [JsonProperty("workingHours")]
-  public IList<AttendanceHourItem> WorkingHours { get; set; }
+  [JsonProperty("flowStr")]
+  public string FlowStr { get; set; }
 }

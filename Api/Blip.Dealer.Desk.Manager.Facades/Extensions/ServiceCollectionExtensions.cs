@@ -1,3 +1,4 @@
+using Blip.Dealer.Desk.Manager.Facade;
 using Blip.Dealer.Desk.Manager.Facades.Interfaces;
 using Blip.Dealer.Desk.Manager.Services;
 using Blip.Dealer.Desk.Manager.Services.Interfaces;
@@ -19,6 +20,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDealerSetupFacade, DealerSetupFacade>();
         services.AddScoped<IBotFactoryService, BotFactoryService>();
         services.AddScoped<IServiceHourFacade, ServiceHourFacade>();
+        services.AddScoped<IBlipCommandService, BlipCommandService>();
+        services.AddScoped<ITagsFacade, TagsFacade>();
+        services.AddScoped<ICustomRepliesFacade, CustomRepliesFacade>();
+        services.AddScoped<IFlowFacade, FlowFacade>();
+        services.AddScoped<IAttendantsFacade, AttendantsFacade>();
+
         services.AddSingleton<IBlipClientFactory, BlipClientFactory>();
 
         return services;
@@ -26,7 +33,7 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddRestEaseClients(this IServiceCollection services)
     {
-        services.AddSingleton(RestClient.For<IBotFactoryClient>("https://419fsdbf-55598.brs.devtunnels.ms/"));
+        services.AddSingleton(RestClient.For<IBotFactoryClient>("https://419fsdbf-55598.brs.devtunnels.ms"));
 
         return services;
     }

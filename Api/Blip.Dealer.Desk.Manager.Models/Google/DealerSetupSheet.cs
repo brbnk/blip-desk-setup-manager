@@ -15,4 +15,7 @@ public record DealerSetupSheet : GoogleSheet
 
   [JsonProperty("L")]
   public string FantasyName { get; set; }
+
+  [JsonProperty("Z")]
+  public string Attendants { get; set; }
 }

@@ -18,7 +18,6 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
 {
     private readonly IList<string> _groups = [];
     private IEnumerable<Application> _applications = [];
-    private string _tenant = string.Empty;
     private ReportSheet _reportSheet;
     private readonly IList<ReportSheet> _report = [];
 
@@ -28,15 +27,7 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
 
         botFactoryService.SetToken(request.GetBearerToken());
 
-        _tenant = request.Tenant;
-
         _applications = await botFactoryService.GetAllApplicationsAsync(request.Tenant);
-
-        if (_applications is null)
-        {
-            logger.Error("It was not possible to find application");
-            throw new Exception("Error to get all applications");
-        }
         
         var groups = await googleSheetsService.ReadAndGroupDealersAsync(request.DataSource.SpreadSheetId, 
                                                                         request.DataSource.Name, 
@@ -51,7 +42,7 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
 
             var dealerGroup = group.Key;
 
-            var chatbot = SetupChatbot(request.Brand, dealerGroup, request.ImageUrl);
+            var chatbot = new Chatbot(request.Brand, dealerGroup, request.Tenant, request.ImageUrl);
 
             tasks.Add(() => HandleChatbotCreationAsync(chatbot, group));
         }
@@ -61,17 +52,12 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
             await task();
         }
 
+        logger.Information("Dealers setup publish completed!");
+
         return _report;
     }
 
-    private Chatbot SetupChatbot(string brand, string dealerGroup, string imageUrl = "")
-    {
-        var name =  $"{brand.Trim().ToUpper()} - {dealerGroup}";
-        
-        return new Chatbot(name, _tenant, imageUrl);
-    }
-
-    private async Task HandleChatbotCreationAsync(Chatbot chatbot, IGrouping<string, DealerSetupSheet?> dealers)
+    private async Task HandleChatbotCreationAsync(Chatbot chatbot, IGrouping<string, DealerSetupSheet> dealers)
     {
         var application = _applications.FirstOrDefault(a => a.ShortName.Contains(chatbot.ShortName));
 
@@ -94,8 +80,6 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
                 return;
 
             _groups.Add(shortName);
-            
-            // Publish flow
         }
         else
         {
@@ -107,12 +91,27 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
         await HandleQueuesCreation(shortName, dealers);
     }
 
-    private async Task HandleQueuesCreation(string chatbotShortName, IGrouping<string, DealerSetupSheet?> dealers)
+    private async Task HandleQueuesCreation(string chatbotShortName, IGrouping<string, DealerSetupSheet> dealers)
     {
         var queues = await botFactoryService.GetAllQueuesAsync(chatbotShortName);
 
         if (queues is null)
             return;
+
+        if (!queues.Any(q => q.Name.Equals("Default")))
+        {
+            var defaultQueue = new Queue("Default");
+            var defaultQueueRequest = new CreateQueuesRequest() { 
+                Queues = [ defaultQueue.Name ]
+            };
+
+            var defaultQueueSuccess = await botFactoryService.CreateQueuesAsync(chatbotShortName, defaultQueueRequest);
+
+            if (defaultQueueSuccess)
+            {
+                logger.Information("Success to create default queue for {ChatbotShortName}", chatbotShortName);
+            }
+        }
 
         var request = new CreateQueuesRequest();
         var rulesRequest = new CreateRulesRequest();
