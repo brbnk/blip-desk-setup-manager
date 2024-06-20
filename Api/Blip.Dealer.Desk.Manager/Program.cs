@@ -1,5 +1,6 @@
 using Blip.Dealer.Desk.Manager.Facades.Extensions;
 using Blip.Dealer.Desk.Manager.Models.AppSettings;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDependecyInjection();
+builder.Services.AddRestEaseClients();
+builder.Services.AddSerilog();
+builder.Services.AddBlipSerializer();
 
 builder.Services.Configure<GoogleSheetsSettings>(builder.Configuration.GetSection(nameof(GoogleSheetsSettings)));
 
@@ -22,7 +26,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
