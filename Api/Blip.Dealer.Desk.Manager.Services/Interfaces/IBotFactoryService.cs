@@ -17,6 +17,8 @@ public interface IBotFactoryService
 
     public Task<bool> CreateRulesAsync(string chatbotShortName, CreateRulesRequest request);
 
+    public Task CreateAttendantsAsync(string chatbotShortName, CreateAttendantsRequest request);
+
     public Task<IEnumerable<string>> GetTagsAsync(string chatbotShortName);
 
     public Task CreateTagsAsync(string chatbotShortName, CreateTagsRequest request);

@@ -52,6 +52,8 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
             await task();
         }
 
+        logger.Information("Dealers setup publish completed!");
+
         return _report;
     }
 
@@ -95,6 +97,21 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
 
         if (queues is null)
             return;
+
+        if (!queues.Any(q => q.Name.Equals("Default")))
+        {
+            var defaultQueue = new Queue("Default");
+            var defaultQueueRequest = new CreateQueuesRequest() { 
+                Queues = [ defaultQueue.Name ]
+            };
+
+            var defaultQueueSuccess = await botFactoryService.CreateQueuesAsync(chatbotShortName, defaultQueueRequest);
+
+            if (defaultQueueSuccess)
+            {
+                logger.Information("Success to create default queue for {ChatbotShortName}", chatbotShortName);
+            }
+        }
 
         var request = new CreateQueuesRequest();
         var rulesRequest = new CreateRulesRequest();

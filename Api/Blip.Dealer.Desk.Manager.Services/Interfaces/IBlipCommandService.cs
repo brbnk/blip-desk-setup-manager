@@ -16,4 +16,6 @@ public interface IBlipCommandService
     public Task PublishCustomRepliesAsync(string shortName, string botAuthKey, IList<Item> items);
 
     public Task PublishServiceHoursAsync(string botAuthKey, ServiceHour serviceHour);
+
+    public Task PublishPostmasterConfigurationAsync(string shortName, string botAuthKey);
 }

@@ -31,7 +31,7 @@ public sealed class FlowFacade(IGoogleSheetsService googleSheetsService,
                                                                         request.DataSource.Name,
                                                                         request.DataSource.Range,
                                                                         request.Brand);
-        var tasks = new List<Task>();
+        var tasks = new List<Func<Task>>();
 
         foreach (var group in groups)
         {
@@ -45,10 +45,13 @@ public sealed class FlowFacade(IGoogleSheetsService googleSheetsService,
                 continue;
             }
 
-            tasks.Add(HandleFlowPublishAsync(application.ShortName, request.FlowStr, file));
+            tasks.Add(() => HandleFlowPublishAsync(application.ShortName, request.FlowStr, file));
         }
 
-        await Task.WhenAll(tasks.ToArray());
+        foreach (var task in tasks)
+        {
+            await task();
+        }
 
         logger.Information("Flows publishing completed!");
     }
@@ -68,5 +71,7 @@ public sealed class FlowFacade(IGoogleSheetsService googleSheetsService,
         await blipCommandService.PublishBuilderWorkingConfigurationAsync(chatbot.ShortName, botAuthKey);
 
         await blipCommandService.PublishBuilderPublishedConfigurationAsync(chatbot.ShortName, botAuthKey);
+
+        await blipCommandService.PublishPostmasterConfigurationAsync(chatbot.ShortName, botAuthKey);
     }
 }
