@@ -9,4 +9,6 @@ public interface IGoogleSheetsService
     public Task<IEnumerable<T>> ReadAsync<T>(string sheetName, string columnRange) where T : GoogleSheet;
 
     public  Task<IEnumerable<IGrouping<string, DealerSetupSheet>>> ReadAndGroupDealersAsync(string spreadSheetId, string sheetName, string range, string brand);
+
+    public  Task<IEnumerable<DealerSetupSheet>> ReadDealersAsync(string spreadSheetId, string sheetName, string range, string brand);
 }

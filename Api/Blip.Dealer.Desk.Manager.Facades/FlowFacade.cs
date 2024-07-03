@@ -27,21 +27,21 @@ public sealed class FlowFacade(IGoogleSheetsService googleSheetsService,
 
         blipCommandService.BlipClient = blipClientFactory.InitBlipClient(request.Tenant);
 
-        var groups = await googleSheetsService.ReadAndGroupDealersAsync(request.DataSource.SpreadSheetId,
-                                                                        request.DataSource.Name,
-                                                                        request.DataSource.Range,
-                                                                        request.Brand);
+        var dealers = await googleSheetsService.ReadDealersAsync(request.DataSource.SpreadSheetId,
+                                                                 request.DataSource.Name,
+                                                                 request.DataSource.Range,
+                                                                 request.Brand);
         var tasks = new List<Func<Task>>();
 
-        foreach (var group in groups)
+        foreach (var dealer in dealers)
         {
-            var chatbot = new Chatbot(request.Brand, group.Key, request.Tenant, imageUrl: "");
+            var chatbot = new Chatbot(request.Brand, dealer.FantasyName, request.Tenant, imageUrl: "");
 
             var application = _applications.FirstOrDefault(a => a.ShortName.Contains(chatbot.ShortName));
 
             if (application is null)
             {
-                logger.Warning("Chatbot does not exist: {Group}", group.Key);
+                logger.Warning("Chatbot does not exist: {Group}", dealer.FantasyName);
                 continue;
             }
 

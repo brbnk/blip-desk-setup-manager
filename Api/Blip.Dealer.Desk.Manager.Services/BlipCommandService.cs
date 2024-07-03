@@ -2,8 +2,10 @@ using System.Text.RegularExpressions;
 using Blip.Dealer.Desk.Manager.Models.Blip;
 using Blip.Dealer.Desk.Manager.Models.Blip.Commands;
 using Blip.Dealer.Desk.Manager.Models.Blip.Replies;
+using Blip.Dealer.Desk.Manager.Models.BotFactory;
 using Blip.Dealer.Desk.Manager.Services.Interfaces;
 using Lime.Protocol;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace Blip.Dealer.Desk.Manager.Services;
@@ -164,6 +166,32 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
         else
         {
             logger.Error("Error to configure service hours for {QueueName}: {Reason}", serviceHour.AttendanceHour.Title, result.Reason?.Description);
+        }
+    }
+
+    public async Task PublishTagsAsync(string shortName, string botAuthKey, IList<Tag> tags)
+    {
+        var resource = new TagsResource(tags);
+
+        var command = new Command()
+        {
+            Uri = $"lime://{shortName}@msging.net/buckets/blip%3Adesk%3Atags",
+            Method = CommandMethod.Set,
+            To = "postmaster@msging.net",
+            Resource = new PlainDocument(JsonConvert.SerializeObject(resource), MediaType.TextPlain)
+        };
+
+        var cts = new CancellationTokenSource();
+
+        var result = await BlipClient.SendCommandAsync(botAuthKey, command, cts.Token);
+
+        if (result.Status == CommandStatus.Success)
+        {
+            logger.Information("Success to create tags for {DealerName}", shortName);
+        }
+        else
+        {
+            logger.Error("Error to create tags for {DealerName}: {Reason}", shortName, result.Reason?.Description);
         }
     }
 }

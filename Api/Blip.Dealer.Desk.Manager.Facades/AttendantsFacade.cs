@@ -22,41 +22,38 @@ public sealed class AttendantsFacade(IBotFactoryService botFactoryService,
 
         _applications = await botFactoryService.GetAllApplicationsAsync(request.Tenant);
 
-        var groups = await googleSheetsService.ReadAndGroupDealersAsync(request.DataSource.SpreadSheetId,
-                                                                        request.DataSource.Name,
-                                                                        request.DataSource.Range,
-                                                                        request.Brand);
+        var dealers = await googleSheetsService.ReadDealersAsync(request.DataSource.SpreadSheetId,
+                                                                 request.DataSource.Name,
+                                                                 request.DataSource.Range,
+                                                                 request.Brand);
 
         var tasks = new List<Task>();
 
-        foreach (var group in groups)
+        foreach (var dealer in dealers)
         {
-            var chatbot = new Chatbot(request.Brand, group.Key, request.Tenant, imageUrl: "");
+            var chatbot = new Chatbot(request.Brand, dealer.FantasyName, request.Tenant, imageUrl: "");
 
             var application = _applications.FirstOrDefault(a => a.ShortName.Contains(chatbot.ShortName));
 
             if (application is null)
             {
-                logger.Warning("Chatbot does not exist: {Group}", group.Key);
+                logger.Warning("Chatbot does not exist: {Group}", dealer.FantasyName);
                 continue;
             }
 
             Dictionary<string, IList<string>> attendantsMap = [];
 
-            foreach (var dealer in group)
-            {
-                var attendants = dealer.Attendants.Split(";");
+            var attendants = dealer.Attendants.Split(";");
 
-                foreach (var email in attendants)
+            foreach (var email in attendants)
+            {
+                if (attendantsMap.TryGetValue(email, out var teams))
                 {
-                    if (attendantsMap.TryGetValue(email, out var teams))
-                    {
-                        teams.Add(dealer.FantasyName);
-                    }
-                    else
-                    {
-                        attendantsMap.Add(email, [dealer.FantasyName]);
-                    }
+                    teams.Add(dealer.FantasyName);
+                }
+                else
+                {
+                    attendantsMap.Add(email, [dealer.FantasyName]);
                 }
             }
 
@@ -76,7 +73,7 @@ public sealed class AttendantsFacade(IBotFactoryService botFactoryService,
             Attendants = attendantsMap.Select(item => new Attendant()
             {
                 Email = item.Key,
-                Teams = item.Value
+                Teams = [ "Default" ]
             })
             .ToList()
         };

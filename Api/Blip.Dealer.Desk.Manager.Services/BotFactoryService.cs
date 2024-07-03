@@ -55,10 +55,19 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
 
             if (!created)
             {
-                logger.Error("Rest Error to Create Group Chatbot: {Name}", request.FullName);
+                logger.Error("Rest Error to Create Group Chatbot {Name}: {Message}", request.FullName, restEx.Content);
+            }
+            else 
+            {
+                logger.Error("Rest Error to Create Group Chatbot {Name}: {Message}", request.FullName, restEx.Content);
             }
 
             return created;
+        }
+        catch (Exception excpetion)
+        {
+            logger.Error("Exception Error to Create Group Chatbot: {Name}", excpetion.Message);
+            return false;
         }
     }
 
@@ -198,7 +207,7 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
                 client.GetTagsASync(_token, shortName)
             );
 
-            return application.Results.Select(t => t.ToLower());                            
+            return application.Results;                            
         }
         catch (Exception ex)
         {

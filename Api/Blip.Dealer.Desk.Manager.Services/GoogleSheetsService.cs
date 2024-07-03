@@ -83,19 +83,38 @@ public class GoogleSheetsService : IGoogleSheetsService
   {
     try
     {
-      var dealers = await SetSpreadSheetId(spreadSheetId).ReadAsync<DealerSetupSheet>(sheetName, range);
-
-      if (!dealers.Any())
-      {
-        _logger.Warning("Sheet is empty");
-        
-        throw new Exception("Sheet is empty");
-      }
+      var dealers = await ReadDealersAsync(spreadSheetId, sheetName, range, brand);
 
       var groups = dealers.Where(d => !string.IsNullOrWhiteSpace(d.Code) && brand.Equals(d.Brand))
                           .GroupBy(d => d.Group);
 
       return groups;
+    }
+    catch (Exception ex)
+    {
+      _logger.Error("Unable to read Dealers Setup Sheet: {ErrorMessage}", ex.Message);
+      throw;
+    }
+  }
+
+  public async Task<IEnumerable<DealerSetupSheet>> ReadDealersAsync(string spreadSheetId, string sheetName, string range, string brand)
+  {
+    try
+    {
+      var dealers = await SetSpreadSheetId(spreadSheetId).ReadAsync<DealerSetupSheet>(sheetName, range);
+
+      if (!dealers.Any())
+      {
+        _logger.Warning("Sheet is empty");
+
+        throw new Exception("Sheet is empty");
+      }
+
+      var response = dealers.ToList();
+
+      response.RemoveAt(0);
+
+      return response;
     }
     catch (Exception ex)
     {

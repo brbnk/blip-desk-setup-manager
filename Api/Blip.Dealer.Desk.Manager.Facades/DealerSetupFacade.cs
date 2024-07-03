@@ -1,5 +1,4 @@
 using Blip.Dealer.Desk.Manager.Facades.Interfaces;
-using Blip.Dealer.Desk.Manager.Models;
 using Blip.Dealer.Desk.Manager.Models.Blip;
 using Blip.Dealer.Desk.Manager.Models.BotFactory;
 using Blip.Dealer.Desk.Manager.Models.Enums;
@@ -18,10 +17,8 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
 {
     private readonly IList<string> _groups = [];
     private IEnumerable<Application> _applications = [];
-    private ReportSheet _reportSheet;
-    private readonly IList<ReportSheet> _report = [];
 
-    public async Task<IList<ReportSheet>> PublishDealerSetupAsync(PublishDealerSetupRequest request)
+    public async Task PublishDealerSetupAsync(PublishDealerSetupRequest request)
     {
         logger.Information("Starting...");
 
@@ -29,22 +26,18 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
 
         _applications = await botFactoryService.GetAllApplicationsAsync(request.Tenant);
         
-        var groups = await googleSheetsService.ReadAndGroupDealersAsync(request.DataSource.SpreadSheetId, 
-                                                                        request.DataSource.Name, 
-                                                                        request.DataSource.Range, 
-                                                                        request.Brand);
+        var dealers = await googleSheetsService.ReadDealersAsync(request.DataSource.SpreadSheetId, 
+                                                                request.DataSource.Name, 
+                                                                request.DataSource.Range, 
+                                                                request.Brand);
 
         var tasks = new List<Func<Task>>();
 
-        foreach (var group in groups)
+        foreach (var dealer in dealers)
         {
-            _reportSheet = new();
+            var chatbot = new Chatbot(request.Brand, dealer.FantasyName, request.Tenant, request.ImageUrl);
 
-            var dealerGroup = group.Key;
-
-            var chatbot = new Chatbot(request.Brand, dealerGroup, request.Tenant, request.ImageUrl);
-
-            tasks.Add(() => HandleChatbotCreationAsync(chatbot, group));
+            tasks.Add(() => HandleChatbotCreationAsync(chatbot, dealer));
         }
 
         foreach (var task in tasks)
@@ -53,11 +46,9 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
         }
 
         logger.Information("Dealers setup publish completed!");
-
-        return _report;
     }
 
-    private async Task HandleChatbotCreationAsync(Chatbot chatbot, IGrouping<string, DealerSetupSheet> dealers)
+    private async Task HandleChatbotCreationAsync(Chatbot chatbot, DealerSetupSheet dealers)
     {
         var application = _applications.FirstOrDefault(a => a.ShortName.Contains(chatbot.ShortName));
 
@@ -67,8 +58,6 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
             ChatbotState.EXISTS : ChatbotState.NEW;
 
         var shortName = application is not null ? application.ShortName : nameWithSuffix;
-
-        _reportSheet.SetBotId(shortName);
 
         if (state.Equals(ChatbotState.NEW)) 
         {
@@ -85,103 +74,39 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
         {
             logger.Warning("Group chatbot already exists {FullName}", chatbot.FullName);
         }
-        
-        _reportSheet.SetChatbotStepStatus(success: true);
 
-        await HandleQueuesCreation(shortName, dealers);
+        await HandleQueuesCreation(shortName);
     }
 
-    private async Task HandleQueuesCreation(string chatbotShortName, IGrouping<string, DealerSetupSheet> dealers)
+    private async Task HandleQueuesCreation(string chatbotShortName)
     {
         var queues = await botFactoryService.GetAllQueuesAsync(chatbotShortName);
 
         if (queues is null)
             return;
 
-        if (!queues.Any(q => q.Name.Equals("Default")))
+        var defaultQueueExist = queues.Any(q => q.Name.Equals("Default"));
+
+        if (defaultQueueExist)
         {
-            var defaultQueue = new Queue("Default");
-            var defaultQueueRequest = new CreateQueuesRequest() { 
-                Queues = [ defaultQueue.Name ]
-            };
-
-            var defaultQueueSuccess = await botFactoryService.CreateQueuesAsync(chatbotShortName, defaultQueueRequest);
-
-            if (defaultQueueSuccess)
-            {
-                logger.Information("Success to create default queue for {ChatbotShortName}", chatbotShortName);
-            }
-        }
-
-        var request = new CreateQueuesRequest();
-        var rulesRequest = new CreateRulesRequest();
-
-        foreach (var dealer in dealers)
-        {
-            var newQueue = new Queue(dealer?.FantasyName);
-
-            var queueExists = queues.Any(q => 
-            {
-                var queue = new Queue(q.Name);
-                return queue.NormalizedName.Equals(newQueue.NormalizedName) || request.Queues.Any(q => q.Equals(newQueue.Name));
-            });
-
-            if (queueExists) 
-            {
-                _reportSheet.SetQueuesStepStatus(success: true);
-                _reportSheet.SetRulesStepStatus(success: true);
-
-                _report.Add(CreateSheetIntance(_reportSheet));
-
-                logger.Warning("Queue already exists: {QueueName}", dealer?.FantasyName);
-                continue;
-            }
-
-            request.Queues.Add(newQueue.Name);
-
-            var rule = new Rule(newQueue.Name, dealer?.Code);
-
-            rulesRequest.Rules.Add(rule);
-        }
-
-        if (!request.Queues.Any()) 
-        {
-            _reportSheet.SetRulesStepStatus(success: true);
-            logger.Warning("Empty list after remove existing queues: {ChabotShortName}", chatbotShortName);
+            logger.Warning("Default queue for {ChatbotShortName} already exists", chatbotShortName);
             return;
         }
 
-        var success = await botFactoryService.CreateQueuesAsync(chatbotShortName, request);
+        var defaultQueue = new Queue("Default");
+        var defaultQueueRequest = new CreateQueuesRequest() { 
+            Queues = [ defaultQueue.Name ]
+        };
 
-        if (success)
+        var defaultQueueSuccess = await botFactoryService.CreateQueuesAsync(chatbotShortName, defaultQueueRequest);
+
+        if (defaultQueueSuccess)
         {
-            _reportSheet.SetQueuesStepStatus(success: true);
-            await HandleRulesCreation(chatbotShortName, rulesRequest);
+            logger.Information("Success to create default queue for {ChatbotShortName}", chatbotShortName);
         }
-    }
-
-    private async Task HandleRulesCreation(string chatbotShortName, CreateRulesRequest request)
-    {
-        var success = await botFactoryService.CreateRulesAsync(chatbotShortName, request);
-
-        if (success) 
+        else 
         {
-            _reportSheet.SetRulesStepStatus(success: true);
-            logger.Information("Setup was configured with success! {ChabotShortName}", chatbotShortName);
+            logger.Error("Error to create default queue for {ChatbotShortName}", chatbotShortName);
         }
-
-        _report.Add(CreateSheetIntance(_reportSheet));
-    }
-
-    public static ReportSheet CreateSheetIntance(ReportSheet sheet)
-    {
-        var newSheet = new ReportSheet(); 
-
-        newSheet.SetBotId(sheet.BotId);
-        newSheet.SetChatbotStepStatus(success: sheet.ChatbotStepStatus.Equals("OK"));
-        newSheet.SetQueuesStepStatus(success: sheet.QueuesStepStatus.Equals("OK"));
-        newSheet.SetRulesStepStatus(success: sheet.RulesStepStatus.Equals("OK"));
-
-        return newSheet;
     }
 }

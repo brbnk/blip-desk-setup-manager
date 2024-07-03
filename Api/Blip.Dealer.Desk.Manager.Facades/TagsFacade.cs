@@ -9,6 +9,8 @@ using Serilog;
 namespace Blip.Dealer.Desk.Manager.Facade;
 
 public sealed class TagsFacade(IBotFactoryService botFactoryService,
+                               IBlipCommandService blipCommandService,
+                               IBlipClientFactory blipClientFactory,
                                IGoogleSheetsService googleSheetsService,
                                ILogger logger) : ITagsFacade
 {
@@ -20,70 +22,79 @@ public sealed class TagsFacade(IBotFactoryService botFactoryService,
 
         botFactoryService.SetToken(request.GetBearerToken());
 
+        blipCommandService.BlipClient = blipClientFactory.InitBlipClient(request.Tenant);
+
         _applications = await botFactoryService.GetAllApplicationsAsync(request.Tenant);
 
-        var groups = await googleSheetsService.ReadAndGroupDealersAsync(request.DataSource.SpreadSheetId, 
-                                                                        request.DataSource.Name, 
-                                                                        request.DataSource.Range, 
-                                                                        request.Brand);
+        var dealers = await googleSheetsService.ReadDealersAsync(request.DataSource.SpreadSheetId, 
+                                                                 request.DataSource.Name, 
+                                                                 request.DataSource.Range, 
+                                                                 request.Brand);
 
-        var tasks = new List<Task>();
+        var tasks = new List<Func<Task>>();
 
-        foreach (var group in groups)
+        foreach (var dealer in dealers)
         {
-            var chatbot = new Chatbot(request.Brand, group.Key, request.Tenant, imageUrl: "");
+            var chatbot = new Chatbot(request.Brand, dealer.FantasyName, request.Tenant, imageUrl: "");
 
             var application = _applications.FirstOrDefault(a => a.ShortName.Contains(chatbot.ShortName));
 
             if (application is null) 
             {
-                logger.Warning("Chatbot does not exist: {Group}", group.Key);
+                logger.Warning("Chatbot does not exist: {Group}", dealer.FantasyName);
                 continue;
             }
             
-            tasks.Add(HandleTagsPublishAsync(application.ShortName, request.Tags));
+            tasks.Add(() => HandleTagsPublishAsync(application, request.Tags));
         }
 
-        await Task.WhenAll(tasks.ToArray());
+        foreach (var task in tasks)
+        {
+            await task();
+        }
 
         logger.Information("Tags publishing completed!");
     }
 
-    private async Task HandleTagsPublishAsync(string shortName, IList<string> newTags)
+    private async Task HandleTagsPublishAsync(Application application, IList<string> newTags)
     {
         if (!newTags.Any())
         {
-            logger.Warning("Skiping tags creation for {Dealer} because its empty", shortName);
+            logger.Warning("Skiping tags creation for {Dealer} because its empty", application.ShortName);
             return;
         }
 
-        var tags = await botFactoryService.GetTagsAsync(shortName);
+        var tags = await botFactoryService.GetTagsAsync(application.ShortName);
 
-        var onlyNewTags = new List<string>();
+        var tagsToSend = tags.ToList();
 
         foreach (var nt in newTags)
         {
-            if (tags.Any(t => t.Equals(nt.ToLower().Trim()))) 
+            if (tagsToSend.Exists(t => nt.ToLower().Trim().Equals(t.ToLower().Trim())))
             {
-                logger.Warning("Tag {Tag} already exists on {Dealer}", nt, shortName);
+                logger.Warning("Tag {Tag} already exists on {Dealer}", nt, application.ShortName);
             }
             else
             {
-                onlyNewTags.Add(nt);
+                tagsToSend.Add(nt);
             }
         }
 
-        if (onlyNewTags.Count == 0)
+        if (tagsToSend.Count == 0)
         {
-            logger.Warning("Empty tags after removing duplicates. Skipping tag creation for {Dealer}", shortName);
+            logger.Warning("Empty tags after removing duplicates. Skipping tag creation for {Dealer}", application.ShortName);
             return;
         }
 
-        var tagsRequest = new CreateTagsRequest()
-        {
-            Tags = onlyNewTags.Select(tag => new Tag { Text = tag }).ToList()
-        };
+        // Get AccessKey
+        var chatbot = await botFactoryService.GetApplicationAsync(application.ShortName);
+        var botAuthKey = chatbot?.GetAuthorizationKey();
 
-        await botFactoryService.CreateTagsAsync(shortName, tagsRequest);
+        if (chatbot is null || botAuthKey is null)
+            return;
+
+        var tagsRequest = tagsToSend.Select(tag => new Tag { Text = tag }).ToList();
+
+        await blipCommandService.PublishTagsAsync(application.ShortName, botAuthKey, tagsRequest);
     } 
 }

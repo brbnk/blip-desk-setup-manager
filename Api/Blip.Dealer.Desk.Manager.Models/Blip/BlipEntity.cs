@@ -10,11 +10,13 @@ public abstract partial class BlipEntity
     {
         var trimed = name.Trim();
 
-        var withNoSpecialChars = RemoveSpecialCharsRegex().Replace(trimed, "");
+        var withoutDash = trimed.Replace("-", " ");
 
-        var withSingleWhiteSpaces = RemoveMultipleWhiteSpacesRegex().Replace(withNoSpecialChars, " ");
+        var withoutSpecialChars = RemoveSpecialCharsRegex().Replace(withoutDash, "");
 
-        if (withNoSpecialChars.Length > MaxLength) 
+        var withSingleWhiteSpaces = RemoveMultipleWhiteSpacesRegex().Replace(withoutSpecialChars, " ");
+
+        if (withSingleWhiteSpaces.Length > MaxLength) 
         {
             return withSingleWhiteSpaces[..MaxLength];
         }

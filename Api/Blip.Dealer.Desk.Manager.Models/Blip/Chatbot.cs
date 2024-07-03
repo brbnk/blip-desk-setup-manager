@@ -18,5 +18,5 @@ public sealed partial class Chatbot(string brand, string name, string tenant, st
 
     public string NameWithSuffix => $"{ShortName}{Suffix}";
 
-    public static string Suffix => Guid.NewGuid().ToString()[..5];
+    public static string Suffix => Guid.NewGuid().ToString()[..3];
 }

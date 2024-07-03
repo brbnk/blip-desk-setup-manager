@@ -5,5 +5,5 @@ namespace Blip.Dealer.Desk.Manager.Facades.Interfaces;
 
 public interface IDealerSetupFacade
 {
-    public Task<IList<ReportSheet>> PublishDealerSetupAsync(PublishDealerSetupRequest request);
+    public Task PublishDealerSetupAsync(PublishDealerSetupRequest request);
 }
