@@ -25,6 +25,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICustomRepliesFacade, CustomRepliesFacade>();
         services.AddScoped<IFlowFacade, FlowFacade>();
         services.AddScoped<IAttendantsFacade, AttendantsFacade>();
+        services.AddScoped<IRouterFacade, RouterFacade>();
 
         services.AddSingleton<IBlipClientFactory, BlipClientFactory>();
 
@@ -33,14 +34,14 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddRestEaseClients(this IServiceCollection services)
     {
-        services.AddSingleton(RestClient.For<IBotFactoryClient>("https://j6qg35r2-55598.brs.devtunnels.ms"));
+        services.AddSingleton(RestClient.For<IBotFactoryClient>("https://mkrbz0b1-55598.brs.devtunnels.ms"));
 
         return services;
     }
 
     public static IServiceCollection AddSerilog(this IServiceCollection services)
     {
-        services.AddSingleton<Serilog.ILogger>(new LoggerConfiguration()
+        services.AddSingleton<ILogger>(new LoggerConfiguration()
             .WriteTo.File("log.txt", rollingInterval: RollingInterval.Day)
             .CreateLogger());
 

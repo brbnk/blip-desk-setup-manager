@@ -17,4 +17,7 @@ public sealed class PostmasterConfigurationResource() : Document(MediaType)
 
     [JsonProperty("AttendanceSatisfactionSurveyEnabled")]
     public bool AttendanceSatisfactionSurveyEnabled { get; set; } = false;
+
+    [JsonProperty("Extensions")]
+    public string Extensions { get; set; } = "{ \"extension1\": { \"name\":\"Selling Online (SOL)\", \"url\":\"https://blip-fca-sol-desk-plugin.hmg-cs.blip.ai?tenant=takeblip-bruno-nakayabu&key=ZGluYW1pY2FzdGVsbGFudGlzcm91dGVyMjpJZzFTWUlnZjhpMDk5TXh3ZW91aA==\", \"view\":\"ticket\" } }";
 }

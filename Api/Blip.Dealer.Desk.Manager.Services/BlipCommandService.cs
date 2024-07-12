@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Blip.Dealer.Desk.Manager.Models;
 using Blip.Dealer.Desk.Manager.Models.Blip;
 using Blip.Dealer.Desk.Manager.Models.Blip.Commands;
 using Blip.Dealer.Desk.Manager.Models.Blip.Replies;
@@ -13,6 +14,34 @@ namespace Blip.Dealer.Desk.Manager.Services;
 public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
 {
     public IBlipClient BlipClient { get; set; }
+
+    public async Task<RouterConfiguration> GetApplicationAdvancedSettings(string shortName, string botAuthKey)
+    {
+        var command = new Command
+        {
+            Uri = $"lime://business.master.hosting@msging.net/configuration",
+            Method = CommandMethod.Get,
+            To = "postmaster@msging.net"
+        };
+
+        var cts = new CancellationTokenSource();
+
+        var result = await BlipClient.SendCommandAsync(botAuthKey, command, cts.Token);
+
+        if (result.Status != CommandStatus.Success)
+        {
+            logger.Error("Error to get {ShortName} advanced settings: {Reason}", shortName, result.Reason?.Description);
+            return new();
+        }
+
+        var resource = JsonConvert.SerializeObject(result.Resource);
+        var settings = JsonConvert.DeserializeObject<AdvancedSettings>(resource);
+        var application = JsonConvert.DeserializeObject<RouterConfiguration>(settings.Application);
+
+        logger.Information("Success to get {ShortName} advanced settings", shortName);
+
+        return application;
+    }
 
     public async Task PublishBuilderPublishedConfigurationAsync(string shortName, string botAuthKey)
     {
@@ -30,11 +59,11 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
 
         if (result.Status == CommandStatus.Success)
         {
-            logger.Information("Success to configure builder published configurations for {ShortName}", shortName);
+            logger.Information("Success to get {ShortName} advanced settings", shortName);
         }
         else
         {
-            logger.Error("Error to configure builder published configurations for {ShortName}: {Reason}", shortName, result.Reason?.Description);
+            logger.Error("Error to get {ShortName} advanced settings: {Reason}", shortName, result.Reason?.Description);
         }
     }
 

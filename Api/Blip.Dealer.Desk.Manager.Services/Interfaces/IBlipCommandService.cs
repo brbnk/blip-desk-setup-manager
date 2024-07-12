@@ -1,3 +1,4 @@
+using Blip.Dealer.Desk.Manager.Models;
 using Blip.Dealer.Desk.Manager.Models.Blip;
 using Blip.Dealer.Desk.Manager.Models.Blip.Replies;
 using Blip.Dealer.Desk.Manager.Models.BotFactory;
@@ -8,7 +9,9 @@ public interface IBlipCommandService
 {
     public IBlipClient BlipClient { get; set; }
 
-    Task PublishTagsAsync(string shortName, string botAuthKey, IList<Tag> tags);
+    public Task<RouterConfiguration> GetApplicationAdvancedSettings(string shortName, string botAuthKey);
+
+    public Task PublishTagsAsync(string shortName, string botAuthKey, IList<Tag> tags);
 
     public Task PublishBusinessBuilderConfigurationAsync(string shortName, string accessKey, string botAuthKey, string flow);
 
