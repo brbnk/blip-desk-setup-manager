@@ -8,7 +8,7 @@ public sealed class CreateRulesRequest
     public IList<Rule> Rules { get; set; } = [];
 }
 
-public sealed class Rule(string team, string dealerId)
+public sealed class Rule(string team, string ruleVale)
 {   
     [JsonProperty("team")]
     public string Team { get; set; } = team;
@@ -20,17 +20,17 @@ public sealed class Rule(string team, string dealerId)
     public string Operator { get; set; } = "And";
 
     [JsonProperty("conditions")]
-    public IEnumerable<Conditions> Conditions { get; set; } = [new Conditions(dealerId)];
+    public IEnumerable<Conditions> Conditions { get; set; } = [new Conditions(ruleVale)];
 }
 
-public sealed class Conditions(string dealerId)
+public sealed class Conditions(string ruleVale)
 {
     [JsonProperty("property")]
-    public string Property { get; set; } = "Contact.Extras.dealerId";
+    public string Property { get; set; } = "Contact.Extras.team";
 
     [JsonProperty("relation")]
     public string Relation { get; set; } = "Equals";
 
     [JsonProperty("values")]
-    public IEnumerable<string> Values { get; set; } = [dealerId];
+    public IEnumerable<string> Values { get; set; } = [ruleVale];
 }

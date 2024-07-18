@@ -90,23 +90,73 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
         if (defaultQueueExist)
         {
             logger.Warning("Default queue for {ChatbotShortName} already exists", chatbotShortName);
-            return;
-        }
-
-        var defaultQueue = new Queue("Default");
-        var defaultQueueRequest = new CreateQueuesRequest() { 
-            Queues = [ defaultQueue.Name ]
-        };
-
-        var defaultQueueSuccess = await botFactoryService.CreateQueuesAsync(chatbotShortName, defaultQueueRequest);
-
-        if (defaultQueueSuccess)
-        {
-            logger.Information("Success to create default queue for {ChatbotShortName}", chatbotShortName);
         }
         else 
         {
-            logger.Error("Error to create default queue for {ChatbotShortName}", chatbotShortName);
+            var defaultQueue = new Queue("Default");
+            var defaultQueueRequest = new CreateQueuesRequest() { 
+                Queues = [ defaultQueue.Name ]
+            };
+
+            var defaultQueueSuccess = await botFactoryService.CreateQueuesAsync(chatbotShortName, defaultQueueRequest);
+
+            if (defaultQueueSuccess)
+            {
+                logger.Information("Success to create default queue for {ChatbotShortName}", chatbotShortName);
+            }
+            else 
+            {
+                logger.Error("Error to create default queue for {ChatbotShortName}", chatbotShortName);
+            }
+        }
+
+        var otherQueues = new Dictionary<string, string> { 
+            { "Alteração de Dados", "updateSolData" } 
+        };
+
+        var rulesRequest = new CreateRulesRequest();
+
+        foreach (var oq in otherQueues)
+        {
+            if (!queues.Any(q => q.Name.Equals(oq.Key)))
+            {
+                var newQueue = new Queue(oq.Key);
+
+                var success = await botFactoryService.CreateQueuesAsync(chatbotShortName, new() { Queues = [ newQueue.Name ]});
+
+                if (success)
+                {
+                    logger.Information("Success to create {Queue} queue for {ChatbotShortName}", newQueue.Name, chatbotShortName);
+                    rulesRequest.Rules.Add(new(oq.Key, oq.Value));
+                }
+                else 
+                {
+                    logger.Error("Error to create {Queue} queue for {ChatbotShortName}", newQueue.Name, chatbotShortName);
+                }
+            }
+            else
+            {
+                logger.Warning("{Queue} queue for {ChatbotShortName} already exists", oq.Key, chatbotShortName);
+            }
+        }
+
+        if (rulesRequest.Rules.Count > 0) 
+        {
+            await HandleRulesRequestAsync(chatbotShortName, rulesRequest);
+        }    
+    }   
+
+    private async Task HandleRulesRequestAsync(string chatbotShortName, CreateRulesRequest request)
+    {
+        var success = await botFactoryService.CreateRulesAsync(chatbotShortName, request);
+
+        if (success)
+        {
+            logger.Information("Success to create rules for {ChatbotShortName}", chatbotShortName);
+        }
+        else 
+        {
+            logger.Error("Error to create rules for {ChatbotShortName}", chatbotShortName);
         }
     }
 }

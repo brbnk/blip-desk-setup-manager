@@ -73,7 +73,7 @@ public sealed class AttendantsFacade(IBotFactoryService botFactoryService,
             Attendants = attendantsMap.Select(item => new Attendant()
             {
                 Email = item.Key,
-                Teams = [ "Default" ]
+                Teams = [ "Default", "Alteração de Dados" ]
             })
             .ToList()
         };
