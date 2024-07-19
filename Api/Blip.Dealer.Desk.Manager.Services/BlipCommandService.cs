@@ -1,7 +1,9 @@
 using System.Text.RegularExpressions;
 using Blip.Dealer.Desk.Manager.Models;
 using Blip.Dealer.Desk.Manager.Models.Blip;
+using Blip.Dealer.Desk.Manager.Models.Blip.Attendance;
 using Blip.Dealer.Desk.Manager.Models.Blip.Commands;
+using Blip.Dealer.Desk.Manager.Models.Blip.Leads;
 using Blip.Dealer.Desk.Manager.Models.Blip.Replies;
 using Blip.Dealer.Desk.Manager.Models.BotFactory;
 using Blip.Dealer.Desk.Manager.Services.Interfaces;
@@ -19,9 +21,9 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
     {
         var command = new Command
         {
-            Uri = $"lime://business.master.hosting@msging.net/configuration",
+            Uri = $"lime://{Constants.BLIP_PLAN}.master.hosting@msging.net/configuration",
             Method = CommandMethod.Get,
-            To = "postmaster@msging.net"
+            To = Constants.POSTMASTER
         };
 
         var cts = new CancellationTokenSource();
@@ -43,13 +45,79 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
         return application;
     }
 
+    public async Task<Contact> GetContactAsync(string phone, string botAuthKey)
+    {
+        try
+        {
+            var command = new Command
+            {
+                Uri = $"/contacts/{phone}@wa.gw.msging.net",
+                Method = CommandMethod.Get,
+                To = Constants.POSTMASTER_CRM
+            };
+
+            var cts = new CancellationTokenSource();
+
+            var result = await BlipClient.SendCommandAsync(botAuthKey, command, cts.Token);
+
+            if (result.Status != CommandStatus.Success)
+            {
+                logger.Error("Error to get contact resource {Contact}", phone);
+                return null;
+            }
+
+            var resource = JsonConvert.SerializeObject(result.Resource, new JsonSerializerSettings { 
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            });
+
+            var contact = JsonConvert.DeserializeObject<Contact>(resource);
+
+            return contact;
+        }
+        catch(Exception ex)
+        {
+            throw;
+        }
+    }
+
+    public async Task<T> GetContextAsync<T>(string phone, string context, string botAuthKey)
+    {
+        try
+        {
+            var command = new Command
+            {
+                Uri = $"/contexts/{phone}@wa.gw.msging.net/{context}",
+                Method = CommandMethod.Get,
+                To = Constants.POSTMASTER_BUILDER
+            };
+
+            var cts = new CancellationTokenSource();
+
+            var result = await BlipClient.SendCommandAsync(botAuthKey, command, cts.Token);
+
+            if (result.Status != CommandStatus.Success)
+            {
+                logger.Error("Error to get {Context} variable for {Contact}", context, phone);
+                return Activator.CreateInstance<T>();
+            }
+
+            var contact = JsonConvert.DeserializeObject<T>(result.Resource.ToString());
+
+            return contact;
+        }
+        catch(Exception ex)
+        {
+            throw;
+        }
+    }
+
     public async Task PublishBuilderPublishedConfigurationAsync(string shortName, string botAuthKey)
     {
         var command = new Command
         {
             Uri = $"/buckets/blip_portal%3Abuilder_published_configuration",
             Method = CommandMethod.Set,
-            To = "postmaster@msging.net",
+            To = Constants.POSTMASTER,
             Resource = new BuilderWorkingConfigurationResource(botAuthKey)
         };
 
@@ -73,7 +141,7 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
         {
             Uri = $"/buckets/blip_portal%3Abuilder_working_configuration",
             Method = CommandMethod.Set,
-            To = "postmaster@msging.net",
+            To = Constants.POSTMASTER,
             Resource = new BuilderWorkingConfigurationResource(botAuthKey)
         };
 
@@ -99,9 +167,9 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
 
         var command = new Command
         {
-            Uri = $"lime://business.builder.hosting@msging.net/configuration?caller={shortName}@msging.net",
+            Uri = $"lime://{Constants.BLIP_PLAN}.builder.hosting@msging.net/configuration",
             Method = CommandMethod.Set,
-            To = "postmaster@msging.net",
+            To = Constants.POSTMASTER,
             Resource = new BusinessConfigurationResource(withAuthKey)
         };
 
@@ -132,7 +200,7 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
         {
             Uri = $"/replies/{customReplyId}",
             Method = CommandMethod.Set,
-            To = "postmaster@desk.msging.net",
+            To = Constants.POSTMASTER_DESK,
             Resource = new CustomReplyResource(new() { Items = items })
         };
 
@@ -154,9 +222,9 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
     {
         var command = new Command
         {
-            Uri = $"lime://postmaster@desk.msging.net/configuration?caller={shortName}@msging.net",
+            Uri = $"lime://{Constants.POSTMASTER_DESK}/configuration?caller={shortName}@msging.net",
             Method = CommandMethod.Set,
-            To = "postmaster@msging.net",
+            To = Constants.POSTMASTER,
             Resource = new PostmasterConfigurationResource()
         };
 
@@ -180,7 +248,7 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
         {
             Uri = "/attendance-hour",
             Method = CommandMethod.Set,
-            To = "postmaster@desk.msging.net",
+            To = Constants.POSTMASTER_DESK,
             Resource = new ServiceHourDocument(serviceHour) 
         };
 
@@ -206,7 +274,7 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
         {
             Uri = $"lime://{shortName}@msging.net/buckets/blip%3Adesk%3Atags",
             Method = CommandMethod.Set,
-            To = "postmaster@msging.net",
+            To = Constants.POSTMASTER,
             Resource = new PlainDocument(JsonConvert.SerializeObject(resource), MediaType.TextPlain)
         };
 
@@ -221,6 +289,37 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
         else
         {
             logger.Error("Error to create tags for {DealerName}: {Reason}", shortName, result.Reason?.Description);
+        }
+    }
+
+    public async Task SetAttendantPermissionAsync(string shortName, string botAuthKey, AttendantPermissionRequest attendantPermissions)
+    {
+        try
+        {
+            var command = new Command()
+            {
+                Uri = $"/agent/{attendantPermissions.Email}/permission",
+                Method = CommandMethod.Set,
+                To = Constants.POSTMASTER_DESK,
+                Resource = new AttendantPermissionResource(attendantPermissions.Permissions)
+            };
+
+            var cts = new CancellationTokenSource();
+
+            var result = await BlipClient.SendCommandAsync(botAuthKey, command, cts.Token);
+
+            if (result.Status == CommandStatus.Success)
+            {
+                logger.Information("Success to set agent permission for {Agent}", attendantPermissions.Email);
+            }
+            else
+            {
+                logger.Error("Error to create tags for {Agent}: {Reason}", attendantPermissions.Email, result.Reason?.Description);
+            }
+        }
+        catch(Exception ex)
+        {
+            logger.Error("Something went wrong to set permissions for {Agent} ({Dealer}): {Message}", attendantPermissions.Email, shortName, ex.Message);
         }
     }
 }

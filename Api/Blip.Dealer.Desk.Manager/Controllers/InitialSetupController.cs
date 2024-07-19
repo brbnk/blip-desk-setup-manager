@@ -30,7 +30,7 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
 
     [HttpPost("service-hours")]
     public async Task<IActionResult> PublishDealerServiceHoursAsync([FromHeader] string token,
-                                                                    [FromBody] PublishServiceHoursRequest request)
+                                                                    [FromBody]PublishServiceHoursRequest request)
     {
         request.SetBearerToken(token);
 

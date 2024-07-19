@@ -7,6 +7,7 @@ using Polly;
 using Polly.Retry;
 using RestEase;
 using Serilog;
+using Blip.Dealer.Desk.Manager.Models;
 
 namespace Blip.Dealer.Desk.Manager.Services;
 
@@ -51,11 +52,11 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
         catch (ApiException restEx)
         {
             // BotFactory returns 401, but chatbot is created on Blip Portal anyway.
-            var created = restEx.StatusCode.Equals(HttpStatusCode.Forbidden);
+            var created = restEx.StatusCode == HttpStatusCode.Forbidden;
 
-            if (!created)
+            if (created)
             {
-                logger.Error("Rest Error to Create Group Chatbot {Name}: {Message}", request.FullName, restEx.Content);
+                logger.Information("Success to Create Group Chatbot {Name}: {Message}", request.FullName, restEx.Content);
             }
             else 
             {
@@ -110,26 +111,6 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
         {
             logger.Error("Error to create queue rules for {ChatbotShortName}: {ErrorMessage}", chatbotShortName, restEx.Content);
             return false;
-        }
-    }
-
-    public async Task CreateTagsAsync(string chatbotShortName, CreateTagsRequest request)
-    {
-        try
-        {
-            var retryPolicy = CreateWaitAndRetryPolicy(_intervals,
-                                                       ex => !ex.StatusCode.Equals(HttpStatusCode.Created),
-                                                       $"Creating tags for {chatbotShortName}");
-
-            await retryPolicy.ExecuteAsync(() =>
-                client.CreateTagsAsync(_token, chatbotShortName, request)
-            );
-
-            logger.Information("Success to create tags for {Dealer}", chatbotShortName);
-        }
-        catch (ApiException restEx)
-        {
-            logger.Error("Error to create tags for {Dealer}: {ErrorMessage}", chatbotShortName, restEx.Content);
         }
     }
 
@@ -221,7 +202,7 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
         try
         {
             var retryPolicy = CreateWaitAndRetryPolicy(_intervals,
-                                                       ex => ex.Content is not null && !ex.Content.Contains("there are no saved queues"),
+                                                       ex => ex.Content is not null && !ex.Content.Contains(Constants.QUEUE_NOT_EXIST_MESSAGE),
                                                        $"Getting {chatbotShortName} queues");
 
             var queues = await retryPolicy.ExecuteAsync(() =>
@@ -232,7 +213,7 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
         }
         catch (ApiException restEx)
         {
-            if (restEx.Content is not null && restEx.Content.Contains("there are no saved queues"))
+            if (restEx.Content is not null && restEx.Content.Contains(Constants.QUEUE_NOT_EXIST_MESSAGE))
                 return [];
 
             logger.Error("RestEase Error to get chatbot group queues: {ShortName}", chatbotShortName);

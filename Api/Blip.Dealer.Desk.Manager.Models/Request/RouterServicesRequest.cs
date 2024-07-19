@@ -19,7 +19,7 @@ public sealed class RouterServicesRequest : BotFactoryRequest
     public GoogleSheetsRequest DataSource { get; set; }
 
     [Required]
-    [JsonProperty("routerId")]
+    [JsonProperty("botId")]
     public string BotId { get; set; }
 
     [Required]

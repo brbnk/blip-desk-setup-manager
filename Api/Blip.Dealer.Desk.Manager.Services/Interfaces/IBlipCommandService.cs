@@ -1,5 +1,7 @@
 using Blip.Dealer.Desk.Manager.Models;
 using Blip.Dealer.Desk.Manager.Models.Blip;
+using Blip.Dealer.Desk.Manager.Models.Blip.Attendance;
+using Blip.Dealer.Desk.Manager.Models.Blip.Leads;
 using Blip.Dealer.Desk.Manager.Models.Blip.Replies;
 using Blip.Dealer.Desk.Manager.Models.BotFactory;
 
@@ -24,4 +26,10 @@ public interface IBlipCommandService
     public Task PublishServiceHoursAsync(string botAuthKey, ServiceHour serviceHour);
 
     public Task PublishPostmasterConfigurationAsync(string shortName, string botAuthKey);
+
+    public Task SetAttendantPermissionAsync(string shortName, string botAuthKey, AttendantPermissionRequest attendantPermissions);
+
+    public Task<Contact> GetContactAsync(string phone, string botAuthKey);
+
+    public Task<T> GetContextAsync<T>(string phone, string context, string botAuthKey);
 }
