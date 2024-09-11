@@ -118,7 +118,9 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
         #region Create Other Queues and Rules
 
         var otherQueues = new Dictionary<string, string> { 
-            { "Alteração de Dados", "updateSolData" } 
+            { "Alteração de Dados", "updateSolData" }, 
+            { "Venda em Andamento", "convertedLead" },
+            { "Lead em Atendimento", "inProgressLead" },
         };
 
         var rulesRequest = new CreateRulesRequest();

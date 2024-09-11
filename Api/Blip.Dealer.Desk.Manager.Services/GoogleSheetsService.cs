@@ -1,3 +1,4 @@
+using Blip.Dealer.Desk.Manager.Models;
 using Blip.Dealer.Desk.Manager.Models.AppSettings;
 using Blip.Dealer.Desk.Manager.Models.Google;
 using Google.Apis.Auth.OAuth2;
@@ -105,9 +106,9 @@ public class GoogleSheetsService : IGoogleSheetsService
 
       if (!dealers.Any())
       {
-        _logger.Warning("Sheet is empty");
+        _logger.Warning(Constants.GOOGLE_SHEET_IS_EMPTY);
 
-        throw new Exception("Sheet is empty");
+        throw new Exception(Constants.GOOGLE_SHEET_IS_EMPTY);
       }
 
       var response = dealers.ToList();

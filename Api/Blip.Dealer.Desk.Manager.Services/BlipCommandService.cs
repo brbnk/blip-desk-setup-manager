@@ -3,7 +3,6 @@ using Blip.Dealer.Desk.Manager.Models;
 using Blip.Dealer.Desk.Manager.Models.Blip;
 using Blip.Dealer.Desk.Manager.Models.Blip.Attendance;
 using Blip.Dealer.Desk.Manager.Models.Blip.Commands;
-using Blip.Dealer.Desk.Manager.Models.Blip.Leads;
 using Blip.Dealer.Desk.Manager.Models.Blip.Replies;
 using Blip.Dealer.Desk.Manager.Models.BotFactory;
 using Blip.Dealer.Desk.Manager.Services.Interfaces;
@@ -44,42 +43,7 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
 
         return application;
     }
-
-    public async Task<Contact> GetContactAsync(string phone, string botAuthKey)
-    {
-        try
-        {
-            var command = new Command
-            {
-                Uri = $"/contacts/{phone}@wa.gw.msging.net",
-                Method = CommandMethod.Get,
-                To = Constants.POSTMASTER_CRM
-            };
-
-            var cts = new CancellationTokenSource();
-
-            var result = await BlipClient.SendCommandAsync(botAuthKey, command, cts.Token);
-
-            if (result.Status != CommandStatus.Success)
-            {
-                logger.Error("Error to get contact resource {Contact}", phone);
-                return null;
-            }
-
-            var resource = JsonConvert.SerializeObject(result.Resource, new JsonSerializerSettings { 
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-            });
-
-            var contact = JsonConvert.DeserializeObject<Contact>(resource);
-
-            return contact;
-        }
-        catch(Exception ex)
-        {
-            throw;
-        }
-    }
-
+    
     public async Task<T> GetContextAsync<T>(string phone, string context, string botAuthKey)
     {
         try

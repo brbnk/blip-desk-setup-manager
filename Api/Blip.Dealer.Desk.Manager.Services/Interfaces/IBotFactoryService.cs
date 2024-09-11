@@ -21,8 +21,6 @@ public interface IBotFactoryService
 
     public Task<IEnumerable<string>> GetTagsAsync(string chatbotShortName);
 
-    public Task CreateTagsAsync(string chatbotShortName, CreateTagsRequest request);
-
     public Task PublishFlowAsync(string chatbotShortName, Stream file);
 
     public void SetToken(string token);

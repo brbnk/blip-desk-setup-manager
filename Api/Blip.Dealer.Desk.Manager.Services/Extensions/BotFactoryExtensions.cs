@@ -25,7 +25,7 @@ public static class BotFactoryExtensions
 
         var requestInfo = new RequestInfo(HttpMethod.Post, "api/flow/publish")
         {
-            BaseAddress = "https://mkrbz0b1-55598.brs.devtunnels.ms"
+            BaseAddress = "https://317klrgw-55598.brs.devtunnels.ms"
         };
 
         requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, file);

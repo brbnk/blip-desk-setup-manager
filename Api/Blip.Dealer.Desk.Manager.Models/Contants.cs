@@ -2,7 +2,7 @@ namespace Blip.Dealer.Desk.Manager.Models;
 
 public static class Constants
 {
-    public const string BLIP_PLAN = "business";
+    public const string BLIP_PLAN = "enterprise";
     public const string POSTMASTER = "postmaster@msging.net";
     public const string POSTMASTER_CRM = "postmaster@crm.msging.net";
     public const string POSTMASTER_BUILDER = "postmaster@builder.msging.net";
