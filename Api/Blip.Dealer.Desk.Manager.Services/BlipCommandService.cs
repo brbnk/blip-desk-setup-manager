@@ -43,7 +43,7 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
 
         return application;
     }
-    
+
     public async Task<T> GetContextAsync<T>(string phone, string context, string botAuthKey)
     {
         try
@@ -71,6 +71,7 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
         }
         catch(Exception ex)
         {
+            Console.WriteLine(ex.Message);
             throw;
         }
     }

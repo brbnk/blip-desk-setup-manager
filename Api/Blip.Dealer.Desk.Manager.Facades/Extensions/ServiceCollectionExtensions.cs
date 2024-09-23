@@ -1,5 +1,6 @@
 using Blip.Dealer.Desk.Manager.Facade;
 using Blip.Dealer.Desk.Manager.Facades.Interfaces;
+using Blip.Dealer.Desk.Manager.Models;
 using Blip.Dealer.Desk.Manager.Services;
 using Blip.Dealer.Desk.Manager.Services.Interfaces;
 using Blip.Dealer.Desk.Manager.Services.RestEase;
@@ -34,7 +35,7 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddRestEaseClients(this IServiceCollection services)
     {
-        services.AddSingleton(RestClient.For<IBotFactoryClient>("https://317klrgw-55598.brs.devtunnels.ms"));
+        services.AddSingleton(RestClient.For<IBotFactoryClient>(Constants.BOT_FACTORY_URL));
 
         return services;
     }

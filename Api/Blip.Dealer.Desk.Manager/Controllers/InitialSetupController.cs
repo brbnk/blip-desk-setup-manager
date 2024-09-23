@@ -1,5 +1,6 @@
 using Blip.Dealer.Desk.Manager.Facades;
 using Blip.Dealer.Desk.Manager.Facades.Interfaces;
+using Blip.Dealer.Desk.Manager.Models;
 using Blip.Dealer.Desk.Manager.Models.Request;
 using Blip.Dealer.Manager.Models.Request;
 using Microsoft.AspNetCore.Mvc;
@@ -18,10 +19,9 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
 {
 
     [HttpPost("dealers")]
-    public async Task<IActionResult> PublishDealerSetupAsync([FromHeader] string token,
-                                                             [FromBody] PublishDealerSetupRequest request)
+    public async Task<IActionResult> PublishDealerSetupAsync([FromBody] PublishDealerSetupRequest request)
     {
-        request.SetBearerToken(token);
+        request.SetBearerToken(Constants.TOKEN);
 
         await deskManagerFacade.PublishDealerSetupAsync(request);
 
@@ -29,10 +29,9 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
     }
 
     [HttpPost("service-hours")]
-    public async Task<IActionResult> PublishDealerServiceHoursAsync([FromHeader] string token,
-                                                                    [FromBody]PublishServiceHoursRequest request)
+    public async Task<IActionResult> PublishDealerServiceHoursAsync([FromBody]PublishServiceHoursRequest request)
     {
-        request.SetBearerToken(token);
+        request.SetBearerToken(Constants.TOKEN);
 
         await serviceHourFacade.PublishDealersServiceHoursAsync(request);
 
@@ -40,10 +39,9 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
     }
 
     [HttpPost("tags")]
-    public async Task<IActionResult> PublishTagsAsync([FromHeader] string token,
-                                                      [FromBody] PublishTagsRequest request)
+    public async Task<IActionResult> PublishTagsAsync([FromBody] PublishTagsRequest request)
     {
-        request.SetBearerToken(token);
+        request.SetBearerToken(Constants.TOKEN);
 
         await tagsFacade.PublishTagsAsync(request);
 
@@ -51,10 +49,9 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
     }
 
     [HttpPost("custom-reply")]
-    public async Task<IActionResult> PublishCustomRepliesAsync([FromHeader] string token,
-                                                               [FromBody] PublishCustomRepliesRequest request)
+    public async Task<IActionResult> PublishCustomRepliesAsync([FromBody] PublishCustomRepliesRequest request)
     {
-        request.SetBearerToken(token);
+        request.SetBearerToken(Constants.TOKEN);
 
         await customRepliesFacade.PublishCustomRepliesAsync(request);
 
@@ -62,10 +59,9 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
     }
 
     [HttpPost("attendants")]
-    public async Task<IActionResult> PublishAttendantsAsync([FromHeader] string token,
-                                                            [FromBody] PublishAttendantsRequest request)
+    public async Task<IActionResult> PublishAttendantsAsync([FromBody] PublishAttendantsRequest request)
     {
-        request.SetBearerToken(token);
+        request.SetBearerToken(Constants.TOKEN);
 
         await attendantsFacade.PublishAttendantsAsync(request);
 
@@ -73,12 +69,11 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
     }
 
     [HttpPost("flow")]
-    public async Task<IActionResult> PublishFlowAsync([FromHeader] string token,
-                                                      [FromHeader] string spreadSheetId,
-                                                      [FromHeader] string sheetName,
-                                                      [FromHeader] string brand,
-                                                      [FromHeader] string tenantId,
-                                                      IFormFile flow)
+    public async Task<IActionResult> PublishFlowAsync(IFormFile flow,
+                                                      [FromHeader] string spreadSheetId = Constants.SPREADSHEET_ID,
+                                                      [FromHeader] string sheetName = Constants.SHEET_NAME,
+                                                      [FromHeader] string brand = Constants.BRAND,
+                                                      [FromHeader] string tenantId = Constants.TENANT_ID)
     {
         var request = new PublishFlowRequest() 
         {
@@ -92,7 +87,7 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
             FlowStr = ""
         };
 
-        request.SetBearerToken(token);
+        request.SetBearerToken(Constants.TOKEN);
 
         await flowFacade.PublishFlowAsync(request, flow.OpenReadStream());
 
@@ -100,10 +95,9 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
     }
 
     [HttpPost("router")]
-    public async Task<IActionResult> GetRouterService([FromHeader] string token, 
-                                                      [FromBody] RouterServicesRequest request)
+    public async Task<IActionResult> GetRouterService([FromBody] RouterServicesRequest request)
     {
-        request.SetBearerToken(token);
+        request.SetBearerToken(Constants.TOKEN);
 
         var response = await routerFacade.GetRouterServicesAsync(request);
 

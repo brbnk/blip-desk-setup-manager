@@ -1,5 +1,6 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
+using Blip.Dealer.Desk.Manager.Models;
 using Blip.Dealer.Desk.Manager.Models.Request;
 using Newtonsoft.Json;
 
@@ -8,10 +9,12 @@ namespace Blip.Dealer.Manager.Models.Request;
 public sealed class RouterServicesRequest : BotFactoryRequest
 {
     [Required]
+    [DefaultValue(Constants.TENANT_ID)]
     [JsonProperty("tenant")]
     public string Tenant { get; set; }
 
     [Required]
+    [DefaultValue(Constants.BRAND)]
     [JsonProperty("brand")]
     public string Brand { get; set; }
 

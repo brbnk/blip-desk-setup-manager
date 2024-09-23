@@ -118,8 +118,7 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
         #region Create Other Queues and Rules
 
         var otherQueues = new Dictionary<string, string> { 
-            { "Alteração de Dados", "updateSolData" }, 
-            { "Venda em Andamento", "convertedLead" },
+            { "CRM", "crm" },
             { "Lead em Atendimento", "inProgressLead" },
         };
 

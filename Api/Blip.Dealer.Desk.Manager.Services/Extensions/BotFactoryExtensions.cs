@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using Blip.Dealer.Desk.Manager.Models;
 using Blip.Dealer.Desk.Manager.Services.RestEase;
 using RestEase;
 using RestEase.Implementation;
@@ -25,7 +26,7 @@ public static class BotFactoryExtensions
 
         var requestInfo = new RequestInfo(HttpMethod.Post, "api/flow/publish")
         {
-            BaseAddress = "https://317klrgw-55598.brs.devtunnels.ms"
+            BaseAddress = Constants.BOT_FACTORY_URL
         };
 
         requestInfo.SetBodyParameterInfo(BodySerializationMethod.Serialized, file);

@@ -24,6 +24,9 @@ public sealed class PostmasterConfigurationResource() : Document(MediaType)
     [JsonProperty("TicketMessagesFilterByAgent")]
     public bool TicketMessagesFilterByAgent { get; set; } = true;
 
+    [JsonProperty("TransferTicketEnabled")]
+    public bool TransferTicketEnabled { get; set; } = true;
+
     [JsonProperty("Extensions")]
     public string Extensions { get; set; } = "";
 
