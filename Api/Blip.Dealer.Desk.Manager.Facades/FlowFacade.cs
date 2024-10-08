@@ -51,6 +51,7 @@ public sealed class FlowFacade(IGoogleSheetsService googleSheetsService,
         foreach (var task in tasks)
         {
             await task();
+            logger.Information("--------------------------------------");
         }
 
         logger.Information("Flows publishing completed!");

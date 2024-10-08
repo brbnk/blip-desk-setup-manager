@@ -22,7 +22,16 @@ public sealed class PostmasterConfigurationResource() : Document(MediaType)
     public bool CanSendAudioRecording { get; set; } = true;
 
     [JsonProperty("TicketMessagesFilterByAgent")]
-    public bool TicketMessagesFilterByAgent { get; set; } = true;
+    public bool TicketMessagesFilterByAgent { get; set; } = false;
+
+    [JsonProperty("TicketMessagesFilterByBot")]
+    public bool TicketMessagesFilterByBot { get; set; } = true;
+    
+    [JsonProperty("CanTransferDirectly")]
+    public bool CanTransferDirectly { get; set; } = true;
+
+    [JsonProperty("CanTransferWithoutAgents")]
+    public bool CanTransferWithoutAgents { get; set; } = false;
 
     [JsonProperty("TransferTicketEnabled")]
     public bool TransferTicketEnabled { get; set; } = true;
@@ -30,7 +39,7 @@ public sealed class PostmasterConfigurationResource() : Document(MediaType)
     [JsonProperty("Extensions")]
     public string Extensions { get; set; } = "";
 
-    // #region ACTIVATE DESK NA FEATURE
+    #region ACTIVATE DESK NA FEATURE
 
     // [JsonProperty("ActiveMessageSearchSource")]
     // public string ActiveMessageSearchSource { get; set; } = "router";
@@ -44,9 +53,9 @@ public sealed class PostmasterConfigurationResource() : Document(MediaType)
     // [JsonProperty("RouterIdentityActiveCampaign")]
     // public string RouterIdentityActiveCampaign { get; set; } = "testestellantis2@msging.net";
 
-    // #endregion
+    #endregion
 
-    // #region CONFIGURE AUTOMATIC CLOSING OF TICKET
+    #region CONFIGURE AUTOMATIC CLOSING OF TICKET
 
     // [JsonProperty("AutomaticClosedTicketIsEnabled")]
     // public bool AutomaticClosedTicketIsEnabled { get; set; } = true;
@@ -81,5 +90,5 @@ public sealed class PostmasterConfigurationResource() : Document(MediaType)
     // [JsonProperty("InactivityTags")]
     // public string InactivityTags { get; set; } = "[\"Inatividade\"]";
 
-    // #endregion
+    #endregion
 }

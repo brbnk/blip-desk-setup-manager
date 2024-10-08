@@ -207,7 +207,7 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
         }
     }
 
-    public async Task PublishServiceHoursAsync(string botAuthKey, ServiceHour serviceHour)
+    public async Task PublishServiceHoursAsync(string botAuthKey, ServiceHour serviceHour, string name)
     {
         var command = new Command()
         {
@@ -223,11 +223,11 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
 
         if (result.Status == CommandStatus.Success)
         {
-            logger.Information("Success to configure service hours for {QueueName}", serviceHour.AttendanceHour.Title);
+            logger.Information("Success to configure service hours for {Dealer}", name);
         }
         else
         {
-            logger.Error("Error to configure service hours for {QueueName}: {Reason}", serviceHour.AttendanceHour.Title, result.Reason?.Description);
+            logger.Error("Error to configure service hours for {Dealer}: {Reason}", name, result.Reason?.Description);
         }
     }
 

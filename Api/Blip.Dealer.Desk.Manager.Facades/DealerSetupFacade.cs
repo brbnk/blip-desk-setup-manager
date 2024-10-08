@@ -3,7 +3,6 @@ using Blip.Dealer.Desk.Manager.Models;
 using Blip.Dealer.Desk.Manager.Models.Blip;
 using Blip.Dealer.Desk.Manager.Models.BotFactory;
 using Blip.Dealer.Desk.Manager.Models.Enums;
-using Blip.Dealer.Desk.Manager.Models.Google;
 using Blip.Dealer.Desk.Manager.Models.Request;
 using Blip.Dealer.Desk.Manager.Services;
 using Blip.Dealer.Desk.Manager.Services.Interfaces;
@@ -44,6 +43,7 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
         foreach (var task in tasks)
         {
             await task();
+            logger.Information("--------------------------------------");
         }
 
         logger.Information("Dealers setup publish completed!");
@@ -117,9 +117,10 @@ public sealed class DealerSetupFacade(IGoogleSheetsService googleSheetsService,
 
         #region Create Other Queues and Rules
 
-        var otherQueues = new Dictionary<string, string> { 
+        var otherQueues = new Dictionary<string, string> {
             { "CRM", "crm" },
-            { "Lead em Atendimento", "inProgressLead" },
+            { "Varejo", "varejo" },
+            { "Vendas Diretas", "vendas diretas" },
         };
 
         var rulesRequest = new CreateRulesRequest();

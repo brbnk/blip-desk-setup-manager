@@ -69,7 +69,7 @@ public sealed class ServiceHourFacade(IGoogleSheetsService googleSheetsService,
 
             var defaultServiceHour = CreateDefaultServiceHour(workingHours);
 
-            await blipCommandService.PublishServiceHoursAsync(botAuthKey, defaultServiceHour);
+            await blipCommandService.PublishServiceHoursAsync(botAuthKey, defaultServiceHour, application.Name);
         }
         else 
         {
