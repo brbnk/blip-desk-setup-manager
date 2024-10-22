@@ -37,6 +37,9 @@ public interface IBotFactoryClient
     [Post("desk/attendants")]
     public Task CreateAttendantsAsync([Header(ACCESS_TOKEN_HEADER)] string token, string shortName, [Body] CreateAttendantsRequest request);
 
+    [Get("desk/attendants")]
+    public Task<AttedantsResult> GetAttendantsAsync([Header(ACCESS_TOKEN_HEADER)] string token, string shortName);
+
     [Post("flow/publish")]
     public Task PublishFlowAsync([Body] HttpContent content);
 }

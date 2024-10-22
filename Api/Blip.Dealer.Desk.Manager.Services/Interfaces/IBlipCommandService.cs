@@ -1,6 +1,7 @@
 using Blip.Dealer.Desk.Manager.Models;
 using Blip.Dealer.Desk.Manager.Models.Blip;
 using Blip.Dealer.Desk.Manager.Models.Blip.Attendance;
+using Blip.Dealer.Desk.Manager.Models.Blip.Commands;
 using Blip.Dealer.Desk.Manager.Models.Blip.Replies;
 using Blip.Dealer.Desk.Manager.Models.BotFactory;
 
@@ -29,4 +30,6 @@ public interface IBlipCommandService
     public Task SetAttendantPermissionAsync(string shortName, string botAuthKey, AttendantPermissionRequest attendantPermissions);
 
     public Task<T> GetContextAsync<T>(string phone, string context, string botAuthKey);
+
+    public Task<TicketsResponse> GetTicketsAsync(string botAuthKey);
 }

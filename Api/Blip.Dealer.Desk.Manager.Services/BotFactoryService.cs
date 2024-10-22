@@ -245,4 +245,23 @@ public sealed class BotFactoryService(IBotFactoryClient client, ILogger logger) 
     {
         _token = token;
     }
+
+    public async Task<bool> HasAttendantsAsync(string chatbotShortName)
+    {
+        try
+        {
+
+            var result = await client.GetAttendantsAsync(_token, chatbotShortName);
+
+            if (result is not null && result.Total > 0) {
+                return true;
+            }
+
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

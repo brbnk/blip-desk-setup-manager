@@ -17,6 +17,47 @@ public sealed class AttendantsFacade(IBotFactoryService botFactoryService,
 {
     private IEnumerable<Application> _applications = [];
 
+    public async Task CheckAttendantsAsync(PublishAttendantsRequest request)
+    {
+        logger.Information("Starting to check Attendants registration...");
+
+        botFactoryService.SetToken(request.GetBearerToken());
+
+        blipCommandService.BlipClient = blipClientFactory.InitBlipClient(request.Tenant);
+
+        _applications = await botFactoryService.GetAllApplicationsAsync(request.Tenant);
+
+        var dealers = await googleSheetsService.ReadDealersAsync(request.DataSource.SpreadSheetId,
+                                                                 request.DataSource.Name,
+                                                                 request.DataSource.Range,
+                                                                 request.Brand);
+
+        var tasks = new List<Func<Task>>();
+
+          foreach (var dealer in dealers)
+        {
+            var chatbot = new Chatbot(request.Brand, dealer.FantasyName, request.Tenant, imageUrl: "");
+
+            var application = _applications.FirstOrDefault(a => a.ShortName.Contains(chatbot.ShortName));
+
+            if (application is null)
+            {
+                logger.Warning("Chatbot does not exist: {Group}", dealer.FantasyName);
+                continue;
+            }
+
+            tasks.Add(() => CheckIfAttendantsExist(application));
+        }
+
+        foreach (var task in tasks)
+        {
+            await task();
+            Thread.Sleep(1000);
+        }
+
+        logger.Information("Attendants check completed!");
+    }
+
     public async Task PublishAttendantsAsync(PublishAttendantsRequest request)
     {
         logger.Information("Starting to create Attendants...");
@@ -129,6 +170,27 @@ public sealed class AttendantsFacade(IBotFactoryService botFactoryService,
         foreach (var permission in permissions)
         {
             await blipCommandService.SetAttendantPermissionAsync(shortName, botAuthKey, permission);
+        }
+    }
+
+    private async Task CheckIfAttendantsExist(Application application)
+    {
+        var hasAttendant = await botFactoryService.HasAttendantsAsync(application.ShortName);
+
+        if (!hasAttendant) {
+            var chatbot = await botFactoryService.GetApplicationAsync(application.ShortName);
+            var botAuthKey = chatbot?.GetAuthorizationKey();
+            var ticket = await blipCommandService.GetTicketsAsync(botAuthKey);
+
+            if (ticket is null) 
+            {
+                logger.Information("No attendants: {Dealer},{Id},0", application.Name, application.ShortName);
+            }
+            else
+            {
+                logger.Information("No attendants: {Dealer},{Id},{Count}", application.Name, application.ShortName, ticket.Resource.Count());
+            }
+
         }
     }
 }

@@ -76,6 +76,38 @@ public sealed class BlipCommandService(ILogger logger) : IBlipCommandService
         }
     }
 
+    public async Task<TicketsResponse> GetTicketsAsync(string botAuthKey)
+    {
+        try
+        {
+            var command = new Command
+            {
+              Uri = $"/tickets?$take=30",
+              Method = CommandMethod.Get,
+              To = Constants.POSTMASTER_DESK  
+            };
+
+            var cts = new CancellationTokenSource();
+
+            var result = await BlipClient.SendCommandAsync(botAuthKey, command, cts.Token);
+
+            if (result.Status != CommandStatus.Success)
+            {
+                return null;
+            }
+            
+            var json = JsonConvert.SerializeObject(result);
+
+            var tickets = JsonConvert.DeserializeObject<TicketsResponse>(json);
+
+            return tickets;
+        }
+        catch(Exception ex)
+        {
+            return null;
+        }
+    }
+
     public async Task PublishBuilderPublishedConfigurationAsync(string shortName, string botAuthKey)
     {
         var command = new Command

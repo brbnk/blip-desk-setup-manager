@@ -19,6 +19,8 @@ public interface IBotFactoryService
 
     public Task CreateAttendantsAsync(string chatbotShortName, CreateAttendantsRequest request);
 
+    public Task<bool> HasAttendantsAsync(string chatbotShortName);
+
     public Task<IEnumerable<string>> GetTagsAsync(string chatbotShortName);
 
     public Task PublishFlowAsync(string chatbotShortName, Stream file);

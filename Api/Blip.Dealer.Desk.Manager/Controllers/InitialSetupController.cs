@@ -68,6 +68,16 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
         return Ok();
     }
 
+    [HttpPost("check-attendants")]
+    public async Task<IActionResult> CheckAttendantsAsync([FromBody] PublishAttendantsRequest request) 
+    {
+        request.SetBearerToken(Constants.TOKEN);
+
+        await attendantsFacade.CheckAttendantsAsync(request);
+
+        return Ok();
+    } 
+
     [HttpPost("flow")]
     public async Task<IActionResult> PublishFlowAsync(IFormFile flow,
                                                       [FromHeader] string spreadSheetId = Constants.SPREADSHEET_ID,
