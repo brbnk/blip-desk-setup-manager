@@ -58,6 +58,16 @@ public class InitialSetupController(IDealerSetupFacade deskManagerFacade,
         return Ok();
     }
 
+    [HttpPut("custom-reply")]
+    public async Task<IActionResult> UpdateCustomRepliesAsync([FromBody] PublishCustomRepliesRequest request)
+    {
+        request.SetBearerToken(Constants.TOKEN);
+
+        await customRepliesFacade.UpdateCustomRepliesAsync(request);
+
+        return Ok();
+    }
+
     [HttpPost("attendants")]
     public async Task<IActionResult> PublishAttendantsAsync([FromBody] PublishAttendantsRequest request)
     {

@@ -21,7 +21,9 @@ public interface IBlipCommandService
 
     public Task PublishBuilderPublishedConfigurationAsync(string shortName, string botAuthKey);
 
-    public Task PublishCustomRepliesAsync(string shortName, string botAuthKey, IList<Item> items);
+    public Task PublishCustomRepliesAsync(string shortName, string botAuthKey, IList<Item> items, string categoryId = null);
+
+    public Task<IList<Item>> GetCustomRepliesAsync(string shortName, string botAuthKey);
 
     public Task PublishServiceHoursAsync(string botAuthKey, ServiceHour serviceHour, string name);
 

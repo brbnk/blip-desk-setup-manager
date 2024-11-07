@@ -2,6 +2,7 @@ using Blip.Dealer.Desk.Manager.Facades.Interfaces;
 using Blip.Dealer.Desk.Manager.Models.Blip;
 using Blip.Dealer.Desk.Manager.Models.Blip.Attendance;
 using Blip.Dealer.Desk.Manager.Models.BotFactory;
+using Blip.Dealer.Desk.Manager.Models.Google;
 using Blip.Dealer.Desk.Manager.Models.Request;
 using Blip.Dealer.Desk.Manager.Services;
 using Blip.Dealer.Desk.Manager.Services.Interfaces;
@@ -46,7 +47,7 @@ public sealed class AttendantsFacade(IBotFactoryService botFactoryService,
                 continue;
             }
 
-            tasks.Add(() => CheckIfAttendantsExist(application));
+            tasks.Add(() => CheckIfAttendantsExist(application, dealer));
         }
 
         foreach (var task in tasks)
@@ -173,7 +174,7 @@ public sealed class AttendantsFacade(IBotFactoryService botFactoryService,
         }
     }
 
-    private async Task CheckIfAttendantsExist(Application application)
+    private async Task CheckIfAttendantsExist(Application application, DealerSetupSheet dealer)
     {
         var hasAttendant = await botFactoryService.HasAttendantsAsync(application.ShortName);
 
@@ -184,11 +185,11 @@ public sealed class AttendantsFacade(IBotFactoryService botFactoryService,
 
             if (ticket is null) 
             {
-                logger.Information("No attendants: {Dealer},{Id},0", application.Name, application.ShortName);
+                logger.Information("No attendants: {Dealer},{Id},{FantasyName},0", application.Name, application.ShortName, dealer.FantasyName);
             }
             else
             {
-                logger.Information("No attendants: {Dealer},{Id},{Count}", application.Name, application.ShortName, ticket.Resource.Count());
+                logger.Information("No attendants: {Dealer},{Id},{FantasyName},{Count}", application.Name, application.ShortName, dealer.FantasyName, ticket.Resource.Count());
             }
 
         }

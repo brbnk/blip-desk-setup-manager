@@ -13,7 +13,7 @@ public record DealerSetupSheet : GoogleSheet
   [JsonProperty("K")]
   public string Code { get; set; }
 
-  [JsonProperty("L")]
+  [JsonProperty("B")]
   public string FantasyName { get; set; }
 
   [JsonProperty("Z")]

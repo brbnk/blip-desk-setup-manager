@@ -56,6 +56,45 @@ public sealed class CustomRepliesFacade(IBotFactoryService botFactoryService,
         logger.Information("Custom replies publishing completed!");
     }
 
+    public async Task UpdateCustomRepliesAsync(PublishCustomRepliesRequest request)
+    {
+        logger.Information("Starting to update Custom Replies...");
+
+        botFactoryService.SetToken(request.GetBearerToken());
+
+        _applications = await botFactoryService.GetAllApplicationsAsync(request.Tenant);
+
+        blipCommandService.BlipClient = blipClientFactory.InitBlipClient(request.Tenant);
+
+        var dealers = await googleSheetsService.ReadDealersAsync(request.DataSource.SpreadSheetId,
+                                                                request.DataSource.Name,
+                                                                request.DataSource.Range,
+                                                                request.Brand);
+        var tasks = new List<Func<Task>>();
+
+        foreach (var dealer in dealers)
+        {
+            var chatbot = new Chatbot(request.Brand, dealer.FantasyName, request.Tenant, imageUrl: "");
+
+            var application = _applications.FirstOrDefault(a => a.ShortName.Contains(chatbot.ShortName));
+
+            if (application is null)
+            {
+                logger.Warning("Chatbot does not exist: {Group}", dealer.FantasyName);
+                continue;
+            }
+
+            tasks.Add(() => HandleCustomReplyUpdateAsync(application.ShortName, request.Items));
+        }
+
+        foreach (var task in tasks)
+        {
+            await task();
+        }
+
+        logger.Information("Custom replies updating completed!");
+    }
+
     private async Task HandleCustomReplyPublishAsync(string shortName, IList<Item> items)
     {
         var chatbot = await botFactoryService.GetApplicationAsync(shortName);
@@ -65,5 +104,41 @@ public sealed class CustomRepliesFacade(IBotFactoryService botFactoryService,
             return;
 
         await blipCommandService.PublishCustomRepliesAsync(shortName, botAuthKey, items);
+    }
+
+    private async Task HandleCustomReplyUpdateAsync(string shortName, IList<Item> items)
+    {
+        var chatbot = await botFactoryService.GetApplicationAsync(shortName);
+        var botAuthKey = chatbot?.GetAuthorizationKey();
+
+        if (chatbot is null || botAuthKey is null)
+            return;
+        
+        var cateogories = await blipCommandService.GetCustomRepliesAsync(shortName, botAuthKey);
+
+        var itemsDict = new Dictionary<string, IList<Item>>();
+
+        foreach (var item in items)
+        {
+            if (itemsDict.TryGetValue(item.Category, out var _))
+            {
+                itemsDict[item.Category].Add(item);
+            }
+            else
+            {
+                itemsDict.Add(item.Category, [item]);
+            }
+        }
+
+        foreach (var group in itemsDict)
+        {
+            var category = cateogories.FirstOrDefault(c => c.Category.Equals(group.Key));
+
+            if (category is null)
+                break;
+            
+            await blipCommandService.PublishCustomRepliesAsync(shortName, botAuthKey, group.Value, category.Id);
+        }
+
     }
 }
